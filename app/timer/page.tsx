@@ -49,7 +49,7 @@ export default function TimerPage(): JSX.Element {
     }
   }
 
-  const formatTime = (h, m) => {
+  const formatTime = (h: number, m: number): string => {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
   }
 
@@ -151,7 +151,7 @@ export default function TimerPage(): JSX.Element {
                   </Typography>
                   <Slider
                     value={hours}
-                    onChange={(e, value) => setHours(value)}
+                    onChange={(e, value) => setHours(Array.isArray(value) ? value[0] : value)}
                     min={0}
                     max={10}
                     step={1}
@@ -187,7 +187,7 @@ export default function TimerPage(): JSX.Element {
                   </Typography>
                   <Slider
                     value={minutes}
-                    onChange={(e, value) => setMinutes(value)}
+                    onChange={(e, value) => setMinutes(Array.isArray(value) ? value[0] : value)}
                     min={0}
                     max={55}
                     step={5}
