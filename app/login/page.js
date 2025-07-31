@@ -36,8 +36,13 @@ export default function LoginPage() {
   }, [])
 
   const validateEmail = (email) => {
-    const nagoyaUPattern = /^[a-zA-Z0-9._%+-]+@(nagoya-u\.ac\.jp|g\.nagoya-u\.ac\.jp)$/
-    return nagoyaUPattern.test(email)
+    const validDomains = [
+      'nagoya-u.ac.jp',
+      'g.nagoya-u.ac.jp', 
+      's.thers.ac.jp'
+    ]
+    const pattern = new RegExp(`^[a-zA-Z0-9._%+-]+@(${validDomains.join('|').replace(/\./g, '\\.')})$`)
+    return pattern.test(email)
   }
 
   const handleLogin = async () => {
@@ -49,7 +54,7 @@ export default function LoginPage() {
     }
     
     if (!validateEmail(email)) {
-      setError('名古屋大学のメールアドレスを入力してください\n(@nagoya-u.ac.jp または @g.nagoya-u.ac.jp)')
+      setError('有効なメールアドレスを入力してください\n対応ドメイン:\n• @nagoya-u.ac.jp\n• @g.nagoya-u.ac.jp\n• @s.thers.ac.jp (機構アカウント)')
       return
     }
 
@@ -119,7 +124,7 @@ export default function LoginPage() {
               </Typography>
               
               <Typography variant="body1" color="text.secondary">
-                名古屋大学のメールアドレスでログイン
+                大学メールアドレスでログイン
               </Typography>
             </Box>
 
@@ -161,7 +166,7 @@ export default function LoginPage() {
                   />
                   
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    @nagoya-u.ac.jp または @g.nagoya-u.ac.jp のアドレスを使用
+                    対応ドメイン: @nagoya-u.ac.jp / @g.nagoya-u.ac.jp / @s.thers.ac.jp
                   </Typography>
                 </Box>
 
