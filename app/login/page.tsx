@@ -19,7 +19,8 @@ import {
   EmailOutlined,
   SchoolOutlined,
   LoginOutlined,
-  ArrowBackOutlined
+  ArrowBackOutlined,
+  PersonOutlined
 } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -30,6 +31,7 @@ export default function LoginPage(): JSX.Element {
   const router = useRouter()
   const { setUser } = useAppStore()
   const [email, setEmail] = useState<string>('')
+  const [name, setName] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [mounted, setMounted] = useState<boolean>(false)
@@ -51,6 +53,11 @@ export default function LoginPage(): JSX.Element {
   const handleLogin = async (): Promise<void> => {
     setError('')
     
+    if (!name.trim()) {
+      setError('お名前を入力してください')
+      return
+    }
+    
     if (!email) {
       setError('メールアドレスを入力してください')
       return
@@ -67,7 +74,7 @@ export default function LoginPage(): JSX.Element {
     setTimeout(() => {
       const user: User = {
         email,
-        name: email.split('@')[0],
+        name: name.trim(),
         studentId: 'demo-' + Math.random().toString(36).substr(2, 9),
         loginTime: new Date().toISOString()
       }
@@ -96,16 +103,20 @@ export default function LoginPage(): JSX.Element {
             {/* ヘッダー */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Button
-                startIcon={<ArrowBackOutlined />}
                 onClick={() => router.push('/')}
                 sx={{ 
                   position: 'absolute', 
                   top: 32, 
                   left: 32,
-                  color: 'text.secondary'
+                  color: 'text.secondary',
+                  minWidth: 40,
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  p: 0
                 }}
               >
-                ホームに戻る
+                <ArrowBackOutlined />
               </Button>
               
               <SchoolOutlined sx={{ 
@@ -127,7 +138,7 @@ export default function LoginPage(): JSX.Element {
               </Typography>
               
               <Typography variant="body1" color="text.secondary">
-                大学メールアドレスでログイン
+                お名前とメールアドレスでログイン
               </Typography>
             </Box>
 
@@ -138,6 +149,39 @@ export default function LoginPage(): JSX.Element {
               border: '1px solid rgba(15, 122, 96, 0.1)'
             }}>
               <CardContent sx={{ p: 4 }}>
+                {/* 名前入力 */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    お名前
+                  </Typography>
+                  
+                  <TextField
+                    fullWidth
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="山田太郎"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonOutlined color="primary" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        '&:hover fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                      }
+                    }}
+                    disabled={loading}
+                  />
+                </Box>
+
+                {/* メールアドレス入力 */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                     大学メールアドレス

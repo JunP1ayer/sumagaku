@@ -31,6 +31,14 @@ const useAppStore = create<AppStore>((set, get) => ({
     isActive: false,
     timeRemaining: 0,
   },
+
+  // 準備時間
+  preparationTime: {
+    isActive: false,
+    timeRemaining: 0,
+    lockerId: null,
+    duration: null, // 分単位
+  },
   
   // ロッカー状態
   lockers: [
@@ -67,7 +75,60 @@ const useAppStore = create<AppStore>((set, get) => ({
     return isToday(dailyPass.purchaseDate)
   },
 
-  // セッション開始
+  // 準備時間開始（1分間）
+  startPreparation: (lockerId: number, duration: number) => {
+    set((state) => ({
+      preparationTime: {
+        isActive: true,
+        timeRemaining: 60, // 1分間の準備時間
+        lockerId,
+        duration,
+      },
+      lockers: state.lockers.map(locker => 
+        locker.id === lockerId 
+          ? { ...locker, isAvailable: false }
+          : locker
+      )
+    }))
+  },
+
+  // 準備時間タイマー更新
+  updatePreparationTimer: () => {
+    const { preparationTime } = get()
+    if (!preparationTime.isActive || preparationTime.timeRemaining <= 0) return
+
+    set((state) => ({
+      preparationTime: {
+        ...state.preparationTime,
+        timeRemaining: Math.max(0, state.preparationTime.timeRemaining - 1)
+      }
+    }))
+  },
+
+  // 準備時間終了後にセッション開始
+  startSessionFromPreparation: () => {
+    const { preparationTime } = get()
+    if (!preparationTime.lockerId || !preparationTime.duration) return
+
+    const startTime = new Date().toISOString()
+    set((state) => ({
+      currentSession: {
+        lockerId: preparationTime.lockerId,
+        startTime,
+        duration: preparationTime.duration,
+        isActive: true,
+        timeRemaining: preparationTime.duration * 60, // 秒に変換
+      },
+      preparationTime: {
+        isActive: false,
+        timeRemaining: 0,
+        lockerId: null,
+        duration: null,
+      }
+    }))
+  },
+
+  // セッション開始（直接）
   startSession: (lockerId: number, duration: number) => {
     const startTime = new Date().toISOString()
     set((state) => ({

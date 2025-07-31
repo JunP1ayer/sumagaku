@@ -22,6 +22,14 @@ export interface Session {
   timeRemaining: number // 秒単位
 }
 
+// 準備時間関連の型定義
+export interface PreparationTime {
+  isActive: boolean
+  timeRemaining: number // 秒単位
+  lockerId: number | null
+  duration: number | null // 分単位
+}
+
 // ロッカー関連の型定義
 export interface Locker {
   id: number
@@ -36,12 +44,16 @@ export interface AppStore {
   isAuthenticated: boolean
   dailyPass: DailyPass
   currentSession: Session
+  preparationTime: PreparationTime
   lockers: Locker[]
 
   // Actions
   setUser: (user: User) => void
   purchaseDailyPass: (transactionId: string) => void
   isDailyPassValid: () => boolean
+  startPreparation: (lockerId: number, duration: number) => void
+  updatePreparationTimer: () => void
+  startSessionFromPreparation: () => void
   startSession: (lockerId: number, duration: number) => void
   updateTimer: () => void
   endSession: () => void

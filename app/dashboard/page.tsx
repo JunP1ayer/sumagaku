@@ -11,7 +11,8 @@ import {
   Fade,
   Zoom,
   Paper,
-  Chip
+  Chip,
+  Slider
 } from '@mui/material'
 import { 
   LockOpenOutlined,
@@ -36,8 +37,9 @@ export default function DashboardPage(): JSX.Element {
     dailyPass, 
     isDailyPassValid, 
     currentSession,
+    preparationTime,
     lockers,
-    startSession,
+    startPreparation,
     reset 
   } = useAppStore()
   
@@ -93,9 +95,9 @@ export default function DashboardPage(): JSX.Element {
     
     const availableLocker = lockers.find(l => l.isAvailable)
     if (availableLocker) {
-      startSession(availableLocker.id, totalMinutes)
+      startPreparation(availableLocker.id, totalMinutes)
       setShowTimerDialog(false)
-      router.push('/session')
+      router.push('/preparation')
     }
   }
 
@@ -323,38 +325,71 @@ export default function DashboardPage(): JSX.Element {
 
                 {/* 時間選択 */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-                    {hours}時間 {minutes}分
-                  </Typography>
-                  
-                  {/* 時間ボタン */}
-                  <Box sx={{ display: 'flex', gap: 1, mb: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    {[0, 1, 2, 3, 4].map(h => (
-                      <Button
-                        key={h}
-                        variant={hours === h ? 'contained' : 'outlined'}
-                        size="small"
-                        onClick={() => setHours(h)}
-                        sx={{ minWidth: 50, fontSize: '0.9rem' }}
-                      >
-                        {h}h
-                      </Button>
-                    ))}
+                  {/* 時間スライダー */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                      時間: {hours}時間
+                    </Typography>
+                    <Slider
+                      value={hours}
+                      onChange={(e, value) => setHours(Array.isArray(value) ? value[0] : value)}
+                      min={0}
+                      max={8}
+                      step={1}
+                      marks={[
+                        { value: 0, label: '0h' },
+                        { value: 2, label: '2h' },
+                        { value: 4, label: '4h' },
+                        { value: 6, label: '6h' },
+                        { value: 8, label: '8h' }
+                      ]}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          width: 24,
+                          height: 24,
+                        },
+                        '& .MuiSlider-track': {
+                          height: 6,
+                        },
+                        '& .MuiSlider-rail': {
+                          height: 6,
+                          opacity: 0.3,
+                        }
+                      }}
+                    />
                   </Box>
-                  
-                  {/* 分ボタン */}
-                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    {[0, 15, 30, 45].map(m => (
-                      <Button
-                        key={m}
-                        variant={minutes === m ? 'contained' : 'outlined'}
-                        size="small"
-                        onClick={() => setMinutes(m)}
-                        sx={{ minWidth: 50, fontSize: '0.9rem' }}
-                      >
-                        {m}m
-                      </Button>
-                    ))}
+
+                  {/* 分スライダー */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                      分: {minutes}分
+                    </Typography>
+                    <Slider
+                      value={minutes}
+                      onChange={(e, value) => setMinutes(Array.isArray(value) ? value[0] : value)}
+                      min={0}
+                      max={55}
+                      step={5}
+                      marks={[
+                        { value: 0, label: '0' },
+                        { value: 15, label: '15' },
+                        { value: 30, label: '30' },
+                        { value: 45, label: '45' }
+                      ]}
+                      sx={{
+                        '& .MuiSlider-thumb': {
+                          width: 24,
+                          height: 24,
+                        },
+                        '& .MuiSlider-track': {
+                          height: 6,
+                        },
+                        '& .MuiSlider-rail': {
+                          height: 6,
+                          opacity: 0.3,
+                        }
+                      }}
+                    />
                   </Box>
                 </Box>
                 
