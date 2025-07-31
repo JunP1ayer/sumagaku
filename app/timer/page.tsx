@@ -17,9 +17,9 @@ import {
 } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import useAppStore from '../../lib/store'
+import useAppStore from '@/lib/store'
 
-export default function TimerPage() {
+export default function TimerPage(): JSX.Element {
   const router = useRouter()
   const { startSession, isDailyPassValid, lockers } = useAppStore()
   const [mounted, setMounted] = useState(false)

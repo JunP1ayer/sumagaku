@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import useAppStore from '../../lib/store'
+import useAppStore from '@/lib/store'
 // Confetti effect removed for simplicity
 
 export default function CompletePage(): JSX.Element {

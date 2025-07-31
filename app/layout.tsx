@@ -1,13 +1,18 @@
 import { Providers } from './providers'
+import { Metadata } from 'next'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'スマ学 - 名古屋大学スマホ断ロッカー',
   description: '集中力を高めるスマートフォンロッカーシステム',
   viewport: 'width=device-width, initial-scale=1',
   themeColor: '#0F7A60',
 }
 
-export default function RootLayout({ children }) {
+interface RootLayoutProps {
+  children: React.ReactNode
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="ja">
       <head>

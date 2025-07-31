@@ -22,7 +22,7 @@ import {
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function Home() {
+export default function Home(): JSX.Element {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 

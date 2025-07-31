@@ -16,7 +16,7 @@ import {
 } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import useAppStore from '../../lib/store'
+import useAppStore from '@/lib/store'
 
 export default function PaymentPage(): JSX.Element {
   const router = useRouter()
