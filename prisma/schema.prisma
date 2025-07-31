@@ -1,0 +1,409 @@
+// Sumagaku Enterprise Database Schema
+// 一流エンジニア設計による拡張可能なアーキテクチャ
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================== ユーザー管理システム ==================
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  studentId   String?  @unique
+  university  String   @default("名古屋大学")
+  department  String?
+  year        Int?
+  
+  // セキュリティ
+  passwordHash String?
+  emailVerified DateTime?
+  twoFactorEnabled Boolean @default(false)
+  
+  // アクセス制御
+  role        UserRole @default(STUDENT)
+  status      UserStatus @default(ACTIVE)
+  
+  // メタデータ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLoginAt DateTime?
+  loginCount  Int      @default(0)
+  
+  // リレーション
+  sessions    Session[]
+  payments    Payment[]
+  dailyPasses DailyPass[]
+  auditLogs   AuditLog[]
+  
+  // NextAuth.js relations
+  accounts     Account[]
+  sessionsAuth SessionAuth[]
+  
+  @@map("users")
+  @@index([email])
+  @@index([studentId])
+  @@index([status])
+}
+
+enum UserRole {
+  STUDENT
+  FACULTY
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+  DEACTIVATED
+}
+
+// ================== 認証・セッション管理 ==================
+
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  lockerNumber Int
+  
+  // セッション状態
+  status      SessionStatus @default(ACTIVE)
+  startTime   DateTime @default(now())
+  endTime     DateTime?
+  plannedDuration Int // 分
+  actualDuration  Int? // 分
+  
+  // ロッカー制御
+  lockerId    String
+  unlockCode  String   @unique
+  
+  // 利用統計
+  phoneAccess Int @default(0) // 緊急アクセス回数
+  extendedTimes Int @default(0) // 延長回数
+  
+  // メタデータ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // リレーション
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locker      Locker @relation(fields: [lockerId], references: [id])
+  extensions  SessionExtension[]
+  
+  @@map("sessions")
+  @@index([userId])
+  @@index([status])
+  @@index([startTime])
+  @@index([unlockCode])
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED  
+  INTERRUPTED
+  EXTENDED
+  EMERGENCY_ACCESSED
+}
+
+model SessionExtension {
+  id          String   @id @default(cuid())
+  sessionId   String
+  extendedBy  Int      // 分
+  reason      String?
+  timestamp   DateTime @default(now())
+  
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@map("session_extensions")
+}
+
+// ================== 決済システム ==================
+
+model DailyPass {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  // 決済情報
+  paymentId   String   @unique
+  amount      Int      // 円
+  currency    String   @default("JPY")
+  
+  // 有効期限
+  validDate   DateTime // その日のみ有効
+  purchasedAt DateTime @default(now())
+  
+  // ステータス
+  status      PassStatus @default(ACTIVE)
+  usageCount  Int        @default(0)
+  maxUsage    Int        @default(999) // 無制限に近い値
+  
+  // メタデータ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // リレーション
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment     Payment  @relation(fields: [paymentId], references: [id])
+  
+  @@map("daily_passes")
+  @@index([userId])
+  @@index([validDate])
+  @@index([status])
+}
+
+enum PassStatus {
+  ACTIVE
+  EXPIRED
+  REFUNDED
+  SUSPENDED
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  userId        String
+  
+  // PayPay情報
+  paypayOrderId String   @unique
+  paypayTxId    String?  @unique
+  
+  // 決済詳細
+  amount        Int      // 円
+  currency      String   @default("JPY")
+  status        PaymentStatus @default(PENDING)
+  
+  // メタデータ
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  completedAt   DateTime?
+  refundedAt    DateTime?
+  
+  // リレーション
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyPass     DailyPass?
+  
+  @@map("payments")
+  @@index([userId])
+  @@index([status])
+  @@index([paypayOrderId])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+// ================== ロッカー管理システム ==================
+
+model Locker {
+  id            String   @id @default(cuid())
+  lockerNumber  Int      @unique
+  
+  // 物理情報
+  location      String   // 図書館フロア・エリア
+  qrCode        String   @unique
+  
+  // 状態管理
+  status        LockerStatus @default(AVAILABLE)
+  batteryLevel  Int?     // IoTセンサー用
+  temperature   Float?   // 環境監視
+  humidity      Float?
+  
+  // メンテナンス
+  lastMaintenance DateTime?
+  maintenanceNotes String?
+  
+  // 利用統計
+  totalUsages   Int      @default(0)
+  totalHours    Float    @default(0)
+  
+  // メタデータ
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // リレーション
+  sessions      Session[]
+  maintenanceLogs MaintenanceLog[]
+  
+  @@map("lockers")
+  @@index([status])
+  @@index([location])
+}
+
+enum LockerStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  OUT_OF_ORDER
+  RESERVED
+}
+
+model MaintenanceLog {
+  id          String   @id @default(cuid())
+  lockerId    String
+  
+  // メンテナンス情報
+  type        MaintenanceType
+  description String
+  performedBy String   // 技術者名
+  status      MaintenanceStatus @default(PENDING)
+  
+  // 日時
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+  
+  locker      Locker   @relation(fields: [lockerId], references: [id])
+  
+  @@map("maintenance_logs")
+  @@index([lockerId])
+  @@index([status])
+}
+
+enum MaintenanceType {
+  ROUTINE_CHECK
+  BATTERY_REPLACEMENT
+  SENSOR_CALIBRATION
+  LOCK_REPAIR
+  EMERGENCY_REPAIR
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ================== 監査・ログシステム ==================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  
+  // アクション情報
+  action      String   // LOGIN, PAYMENT, SESSION_START, etc.
+  resource    String?  // 対象リソース
+  resourceId  String?  // リソースID
+  
+  // 詳細情報
+  details     Json?    // フレキシブルなメタデータ
+  ipAddress   String?
+  userAgent   String?
+  
+  // ステータス
+  success     Boolean  @default(true)
+  errorMessage String?
+  
+  // 日時
+  timestamp   DateTime @default(now())
+  
+  // リレーション
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
+
+// ================== システム設定 ==================
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        ConfigType @default(STRING)
+  description String?
+  
+  // メタデータ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+  
+  @@map("system_config")
+  @@index([key])
+}
+
+enum ConfigType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+// ================== 統計・分析 ==================
+
+model UsageStats {
+  id          String   @id @default(cuid())
+  
+  // 統計対象
+  date        DateTime @unique @db.Date
+  
+  // 利用統計
+  totalSessions Int     @default(0)
+  totalUsers    Int     @default(0)
+  totalRevenue  Int     @default(0) // 円
+  avgSessionTime Float  @default(0) // 分
+  
+  // ロッカー統計
+  lockerUtilization Float @default(0) // %
+  peakHours         Json? // 時間帯別利用率
+  
+  // メタデータ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("usage_stats")
+  @@index([date])
+}
+
+// ================== NextAuth.js Models ==================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model SessionAuth {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions_auth")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
