@@ -52,29 +52,29 @@ export default function Home() {
     <Box sx={{ 
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #F8F9FA 0%, #E8F5E8 100%)',
-      py: 4
+      py: 2
     }}>
       <Container maxWidth="md">
         {/* ヒーローセクション */}
         <Fade in={mounted} timeout={1000}>
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
             <Grow in={mounted} timeout={1200}>
               <Box sx={{ mb: 3 }}>
                 <PhoneAndroidOutlined sx={{ 
-                  fontSize: 80, 
+                  fontSize: 60, 
                   color: 'primary.main',
-                  mb: 2,
+                  mb: 1,
                   filter: 'drop-shadow(0 4px 8px rgba(15, 122, 96, 0.3))'
                 }} />
                 <Typography 
-                  variant="h1" 
+                  variant="h2" 
                   component="h1"
                   sx={{ 
                     background: 'linear-gradient(135deg, #0F7A60 0%, #4A9B7E 100%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    mb: 2,
+                    mb: 1,
                     textShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
@@ -88,13 +88,13 @@ export default function Home() {
               label="名古屋大学公式"
               color="primary"
               variant="outlined"
-              sx={{ mb: 3, fontSize: '1rem', p: 2 }}
+              sx={{ mb: 2, fontSize: '0.9rem', p: 1.5 }}
             />
             
             <Typography 
-              variant="h4" 
+              variant="h5" 
               color="text.secondary" 
-              sx={{ mb: 4, fontWeight: 400 }}
+              sx={{ mb: 2, fontWeight: 400 }}
             >
               スマートフォン断ちで<br />
               集中力を最大化
@@ -103,7 +103,7 @@ export default function Home() {
             <Typography 
               variant="body1" 
               color="text.secondary" 
-              sx={{ mb: 5, maxWidth: '600px', mx: 'auto', lineHeight: 1.8 }}
+              sx={{ mb: 3, maxWidth: '600px', mx: 'auto', lineHeight: 1.6 }}
             >
               図書館での学習効率を向上させる革新的なロッカーシステム。
               スマートフォンを安全に預けて、集中できる学習環境を作りましょう。
@@ -131,7 +131,7 @@ export default function Home() {
         </Fade>
 
         {/* 特徴セクション */}
-        <Grid container spacing={4} sx={{ mb: 6 }}>
+        <Grid container spacing={3} sx={{ mb: 3 }}>
           {features.map((feature, index) => (
             <Grid item xs={12} md={4} key={index}>
               <Grow in={mounted} timeout={1000 + index * 200}>
@@ -146,9 +146,11 @@ export default function Home() {
                     }
                   }}
                 >
-                  <CardContent sx={{ p: 4 }}>
+                  <CardContent sx={{ p: 2.5 }}>
                     <Box sx={{ mb: 2 }}>
-                      {feature.icon}
+                      <Box sx={{ '& svg': { fontSize: 32 } }}>
+                        {feature.icon}
+                      </Box>
                     </Box>
                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                       {feature.title}
@@ -172,11 +174,11 @@ export default function Home() {
               textAlign: 'center'
             }}
           >
-            <CardContent sx={{ p: 5 }}>
-              <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 600 }}>
                 学習効率を向上させませんか？
               </Typography>
-              <Typography variant="body1" sx={{ mb: 4, opacity: 0.9 }}>
+              <Typography variant="body1" sx={{ mb: 2.5, opacity: 0.9 }}>
                 今すぐスマ学を始めて、集中できる学習環境を手に入れましょう
               </Typography>
               <Button
