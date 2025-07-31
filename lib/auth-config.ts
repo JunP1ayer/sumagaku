@@ -296,7 +296,7 @@ export const authOptions: NextAuthOptions = {
 
     async createUser({ user }) {
       // Welcome new user
-      console.log(`New user created: ${user.email}`)
+      console.warn(`New user created: ${user.email}`)
     }
   },
 

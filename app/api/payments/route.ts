@@ -301,7 +301,7 @@ async function sendPaymentConfirmationEmail(
 ) {
   try {
     // Email sending implementation
-    console.log(`Sending confirmation email to ${email}:`, data)
+    console.warn(`Sending confirmation email to ${email}:`, data)
     
     // Actual email implementation would use nodemailer or similar
     if (process.env.SMTP_HOST) {

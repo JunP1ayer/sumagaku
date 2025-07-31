@@ -7,8 +7,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   eslint: {
-    // ビルド時のESLintエラーを無視
-    ignoreDuringBuilds: true,
+    // ビルド時のESLintエラーを無視しない
+    ignoreDuringBuilds: false,
   },
 }
 

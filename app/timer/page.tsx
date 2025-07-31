@@ -151,7 +151,7 @@ export default function TimerPage(): JSX.Element {
                   </Typography>
                   <Slider
                     value={hours}
-                    onChange={(e, value) => setHours(Array.isArray(value) ? value[0] : value)}
+                    onChange={(_e, value) => setHours(Array.isArray(value) ? value[0] : value)}
                     min={0}
                     max={10}
                     step={1}
@@ -187,7 +187,7 @@ export default function TimerPage(): JSX.Element {
                   </Typography>
                   <Slider
                     value={minutes}
-                    onChange={(e, value) => setMinutes(Array.isArray(value) ? value[0] : value)}
+                    onChange={(_e, value) => setMinutes(Array.isArray(value) ? value[0] : value)}
                     min={0}
                     max={55}
                     step={5}

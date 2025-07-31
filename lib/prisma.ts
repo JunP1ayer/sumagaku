@@ -55,8 +55,8 @@ if (process.env.NODE_ENV !== 'production') {
 if (process.env.NODE_ENV === 'development') {
   try {
     (prisma as any).$on('query', (e: any) => {
-      console.log('Query: ' + e.query)
-      console.log('Duration: ' + e.duration + 'ms')
+      console.warn('Query: ' + e.query)
+      console.warn('Duration: ' + e.duration + 'ms')
     })
   } catch (error) {
     // Ignore if event monitoring not supported
