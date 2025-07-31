@@ -20,8 +20,10 @@ import {
   PhoneAndroidOutlined
 } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -110,6 +112,7 @@ export default function Home() {
             <Button
               variant="contained"
               size="large"
+              onClick={() => router.push('/login')}
               sx={{ 
                 px: 6, 
                 py: 2, 
