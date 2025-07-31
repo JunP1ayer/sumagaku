@@ -37,7 +37,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/prop-types": "^15.7.15",
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.13",
+    "eslint-config-next": "14.2.13"
   },
   "engines": {
     "node": ">=18.17.0"
