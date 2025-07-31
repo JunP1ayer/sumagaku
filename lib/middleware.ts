@@ -30,7 +30,7 @@ export interface RateLimitOptions {
 
 // ================== Request ID Middleware ==================
 
-export const withRequestId = (handler: Function) => {
+export const withRequestId = (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
   return async (request: NextRequest, context?: any) => {
     const requestId = generateRequestId()
     ;(request as AuthenticatedRequest).requestId = requestId
@@ -47,7 +47,7 @@ export const withRequestId = (handler: Function) => {
 
 // ================== CORS Middleware ==================
 
-export const withCors = (handler: Function) => {
+export const withCors = (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
   return async (request: NextRequest, context?: any) => {
     // Handle preflight requests
     if (request.method === 'OPTIONS') {
@@ -76,7 +76,7 @@ export const withCors = (handler: Function) => {
 
 // ================== Authentication Middleware ==================
 
-export const withAuth = (handler: Function) => {
+export const withAuth = (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
   return async (request: AuthenticatedRequest, context?: any) => {
     try {
       const authHeader = request.headers.get('authorization')
@@ -143,7 +143,7 @@ export const withAuth = (handler: Function) => {
 // ================== Authorization Middleware ==================
 
 export const withRole = (allowedRoles: string[]) => {
-  return (handler: Function) => {
+  return (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
     return async (request: AuthenticatedRequest, context?: any) => {
       if (!request.user) {
         return unauthorizedError('認証が必要です', request.requestId)
@@ -163,7 +163,7 @@ export const withRole = (allowedRoles: string[]) => {
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
 
 export const withRateLimit = (options: RateLimitOptions) => {
-  return (handler: Function) => {
+  return (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
     return async (request: AuthenticatedRequest, context?: any) => {
       const ip = request.ip || request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || 'unknown'
       const key = `${ip}:${request.nextUrl.pathname}`
@@ -214,7 +214,7 @@ export const withRateLimit = (options: RateLimitOptions) => {
 // ================== Audit Logging Middleware ==================
 
 export const withAuditLog = (action: string) => {
-  return (handler: Function) => {
+  return (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
     return async (request: AuthenticatedRequest, context?: any) => {
       const startTime = Date.now()
       const requestBody = request.method !== 'GET' ? await request.clone().text() : null
@@ -304,8 +304,8 @@ const logAudit = async (data: AuditLogData): Promise<void> => {
 
 // ================== Compose Middlewares ==================
 
-export const compose = (...middlewares: Function[]) => {
-  return (handler: Function) => {
+export const compose = (...middlewares: ((handler: (req: NextRequest, ctx?: any) => Promise<any>) => (req: NextRequest, ctx?: any) => Promise<any>)[]) => {
+  return (handler: (req: NextRequest, ctx?: any) => Promise<any>) => {
     return middlewares.reduceRight((acc, middleware) => middleware(acc), handler)
   }
 }
