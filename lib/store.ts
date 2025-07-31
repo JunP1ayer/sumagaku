@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppStore, User, DailyPass, Session, Locker } from '../types'
+import type { AppStore, User, DailyPass, Session, Locker } from '@/types'
 
 // 日付ユーティリティ関数
 const formatDate = (date: Date): string => {

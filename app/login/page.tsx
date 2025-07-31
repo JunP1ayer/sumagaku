@@ -24,7 +24,7 @@ import {
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useAppStore from '@/lib/store'
-import type { User } from '../../types'
+import type { User } from '@/types'
 
 export default function LoginPage(): JSX.Element {
   const router = useRouter()
