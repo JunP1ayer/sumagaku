@@ -11,12 +11,7 @@ import {
   Fade,
   Zoom,
   Paper,
-  Chip,
-  Slider,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Divider
+  Chip
 } from '@mui/material'
 import { 
   LockOpenOutlined,
@@ -258,169 +253,139 @@ export default function DashboardPage(): JSX.Element {
           </Box>
         </Fade>
 
-        {/* タイマー設定ダイアログ */}
-        <Dialog 
-          open={showTimerDialog} 
-          onClose={() => setShowTimerDialog(false)}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: 4,
-              p: 2
-            }
-          }}
-        >
-          <DialogTitle sx={{ 
-            textAlign: 'center', 
-            pb: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <TimerOutlined sx={{ color: 'primary.main' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>集中時間を設定</Typography>
-            <IconButton onClick={() => setShowTimerDialog(false)} size="small">
-              <CloseOutlined />
-            </IconButton>
-          </DialogTitle>
-          
-          <DialogContent sx={{ px: 3, pb: 3 }}>
-            {/* タイマー表示 */}
-            <Paper 
-              elevation={0}
-              sx={{ 
-                p: 4,
-                mb: 4,
-                textAlign: 'center',
-                backgroundColor: 'grey.50',
-                borderRadius: 3
-              }}
-            >
-              <Typography 
-                variant="h2" 
-                sx={{ 
-                  fontFamily: 'monospace',
-                  fontWeight: 300,
-                  color: 'primary.main',
-                  mb: 2,
-                  letterSpacing: '0.1em'
-                }}
-              >
-                {formatTime(hours, minutes)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                合計: {totalMinutes}分
-              </Typography>
-            </Paper>
+        {/* タイマー設定画面 */}
+        {showTimerDialog && (
+          <Fade in={showTimerDialog} timeout={500}>
+            <Box sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'background.default',
+              zIndex: 1300,
+              display: 'flex',
+              flexDirection: 'column',
+              p: 3
+            }}>
+              {/* ヘッダー */}
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 3,
+                pt: 1
+              }}>
+                <TimerOutlined sx={{ color: 'primary.main', fontSize: 28 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  集中時間を設定
+                </Typography>
+                <IconButton onClick={() => setShowTimerDialog(false)} size="small">
+                  <CloseOutlined />
+                </IconButton>
+              </Box>
 
-            {/* 時間スライダー */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                時間: {hours}時間
-              </Typography>
-              <Slider
-                value={hours}
-                onChange={(e, value) => setHours(Array.isArray(value) ? value[0] : value)}
-                min={0}
-                max={10}
-                step={1}
-                marks={[
-                  { value: 0, label: '0h' },
-                  { value: 2, label: '2h' },
-                  { value: 4, label: '4h' },
-                  { value: 6, label: '6h' },
-                  { value: 8, label: '8h' },
-                  { value: 10, label: '10h' }
-                ]}
-                sx={{
-                  '& .MuiSlider-thumb': {
-                    width: 20,
-                    height: 20,
-                  },
-                  '& .MuiSlider-track': {
-                    height: 4,
-                  },
-                  '& .MuiSlider-rail': {
-                    height: 4,
-                    opacity: 0.3,
-                  }
-                }}
-              />
+              {/* メインコンテンツ */}
+              <Box sx={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                maxWidth: 400,
+                mx: 'auto',
+                width: '100%'
+              }}>
+                {/* タイマー表示 */}
+                <Box sx={{
+                  textAlign: 'center',
+                  mb: 4,
+                  p: 3,
+                  backgroundColor: 'grey.50',
+                  borderRadius: 3
+                }}>
+                  <Typography 
+                    variant="h1" 
+                    sx={{ 
+                      fontFamily: 'monospace',
+                      fontWeight: 200,
+                      color: 'primary.main',
+                      fontSize: { xs: '3rem', sm: '4rem' },
+                      mb: 1,
+                      letterSpacing: '0.1em'
+                    }}
+                  >
+                    {formatTime(hours, minutes)}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    合計 {totalMinutes}分
+                  </Typography>
+                </Box>
+
+                {/* 時間選択 */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                    {hours}時間 {minutes}分
+                  </Typography>
+                  
+                  {/* 時間ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {[0, 1, 2, 3, 4].map(h => (
+                      <Button
+                        key={h}
+                        variant={hours === h ? 'contained' : 'outlined'}
+                        size="small"
+                        onClick={() => setHours(h)}
+                        sx={{ minWidth: 50, fontSize: '0.9rem' }}
+                      >
+                        {h}h
+                      </Button>
+                    ))}
+                  </Box>
+                  
+                  {/* 分ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {[0, 15, 30, 45].map(m => (
+                      <Button
+                        key={m}
+                        variant={minutes === m ? 'contained' : 'outlined'}
+                        size="small"
+                        onClick={() => setMinutes(m)}
+                        sx={{ minWidth: 50, fontSize: '0.9rem' }}
+                      >
+                        {m}m
+                      </Button>
+                    ))}
+                  </Box>
+                </Box>
+                
+                {/* エラーメッセージ */}
+                {totalMinutes < 5 && (
+                  <Typography variant="body2" color="error" sx={{ textAlign: 'center', mb: 3 }}>
+                    最低5分以上に設定してください
+                  </Typography>
+                )}
+                
+                {/* スタートボタン */}
+                <Button
+                  onClick={handleStartSession}
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  disabled={totalMinutes < 5}
+                  sx={{
+                    py: 2,
+                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    mt: 2
+                  }}
+                >
+                  集中モード開始 ({totalMinutes}分)
+                </Button>
+              </Box>
             </Box>
-
-            {/* 分スライダー */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                分: {minutes}分
-              </Typography>
-              <Slider
-                value={minutes}
-                onChange={(e, value) => setMinutes(Array.isArray(value) ? value[0] : value)}
-                min={0}
-                max={55}
-                step={5}
-                marks={[
-                  { value: 0, label: '0' },
-                  { value: 15, label: '15' },
-                  { value: 30, label: '30' },
-                  { value: 45, label: '45' }
-                ]}
-                sx={{
-                  '& .MuiSlider-thumb': {
-                    width: 20,
-                    height: 20,
-                  },
-                  '& .MuiSlider-track': {
-                    height: 4,
-                  },
-                  '& .MuiSlider-rail': {
-                    height: 4,
-                    opacity: 0.3,
-                  }
-                }}
-              />
-            </Box>
-
-            <Divider sx={{ mb: 3 }} />
-
-            {/* 利用可能ロッカー表示 */}
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-              利用可能なロッカー: {lockers.filter(l => l.isAvailable).length}台
-            </Typography>
-
-            {/* スタートボタン */}
-            <Button
-              onClick={handleStartSession}
-              variant="contained"
-              size="large"
-              fullWidth
-              startIcon={<PlayArrowOutlined />}
-              disabled={totalMinutes < 5}
-              sx={{
-                py: 2,
-                fontSize: '1.1rem',
-                borderRadius: 3,
-                boxShadow: '0 4px 16px rgba(15, 122, 96, 0.3)',
-                '&:hover': {
-                  boxShadow: '0 6px 20px rgba(15, 122, 96, 0.4)',
-                  transform: 'translateY(-1px)',
-                },
-                '&:disabled': {
-                  opacity: 0.5
-                }
-              }}
-            >
-              集中モード開始
-            </Button>
-
-            {totalMinutes < 5 && (
-              <Typography variant="caption" color="error" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-                最低5分以上に設定してください
-              </Typography>
-            )}
-          </DialogContent>
-        </Dialog>
+          </Fade>
+        )}
       </Container>
     </Box>
   )
