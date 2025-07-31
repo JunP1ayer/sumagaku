@@ -164,41 +164,6 @@ export default function Home(): JSX.Element {
             </Grid>
           ))}
         </Grid>
-
-        {/* CTAセクション */}
-        <Fade in={mounted} timeout={1500}>
-          <Card 
-            sx={{ 
-              background: 'linear-gradient(135deg, #0F7A60 0%, #4A9B7E 100%)',
-              color: 'white',
-              textAlign: 'center'
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 600 }}>
-                学習効率を向上させませんか？
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 2.5, opacity: 0.9 }}>
-                今すぐスマ学を始めて、集中できる学習環境を手に入れましょう
-              </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                sx={{ 
-                  bgcolor: 'white', 
-                  color: 'primary.main',
-                  px: 4,
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.9)',
-                    transform: 'scale(1.05)',
-                  }
-                }}
-              >
-                ロッカーを利用する
-              </Button>
-            </CardContent>
-          </Card>
-        </Fade>
       </Container>
     </Box>
   )
