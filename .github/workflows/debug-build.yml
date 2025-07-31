@@ -1,0 +1,69 @@
+name: Debug Build Issues
+
+on:
+  push:
+    branches: [ debug, main ]
+  workflow_dispatch:
+
+jobs:
+  debug-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.14.0'
+        cache: 'npm'
+        
+    - name: Show environment info
+      run: |
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "Current directory: $(pwd)"
+        echo "Files in root:"
+        ls -la
+        
+    - name: Show package.json
+      run: cat package.json
+      
+    - name: Clean install
+      run: |
+        rm -rf node_modules package-lock.json
+        npm install
+        
+    - name: Show installed TypeScript version
+      run: |
+        npx tsc --version
+        echo "TypeScript config:"
+        cat tsconfig.json
+        
+    - name: Check @types/node installation
+      run: |
+        npm list @types/node
+        echo "Node types location:"
+        find node_modules -name "@types" -type d | head -5
+        
+    - name: Verbose TypeScript check
+      run: npx tsc --noEmit --listFiles | head -20
+      continue-on-error: true
+      
+    - name: Debug build with verbose output
+      run: |
+        export DEBUG=*
+        npm run build
+      env:
+        NODE_ENV: production
+        NODE_OPTIONS: '--max-old-space-size=4096'
+      continue-on-error: true
+      
+    - name: Show build errors if any
+      if: failure()
+      run: |
+        echo "=== Build failed, showing .next directory ==="
+        ls -la .next/ 2>/dev/null || echo "No .next directory found"
+        echo "=== Showing potential error logs ==="
+        find . -name "*.log" -type f | head -5 | xargs cat 2>/dev/null || echo "No log files found"
