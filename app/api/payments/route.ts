@@ -15,6 +15,8 @@ import {
 } from '@/lib/api-response'
 import { withAuthenticatedApi, withAuditLog, AuthenticatedRequest } from '@/lib/middleware'
 import crypto from 'crypto'
+import { getPayPayClient, PayPayError } from '@/lib/paypay-client'
+import { getEmailClient } from '@/lib/email-client'
 
 // ================== Create Payment Order ==================
 
@@ -76,8 +78,8 @@ const createPaymentHandler = async (request: AuthenticatedRequest) => {
       }
     })
     
-    // Mock PayPay API call (replace with actual API in production)
-    const paypayResponse = await createPayPalOrder({
+    // PayPay API call
+    const paypayResponse = await createPayment({
       merchantPaymentId,
       amount: paymentData.amount,
       userInfo: {
@@ -128,9 +130,9 @@ const paypayWebhookHandler = async (request: NextRequest) => {
   try {
     const body = await request.json()
     
-    // Verify webhook signature (implement actual verification)
+    // Verify webhook signature
     const signature = request.headers.get('x-paypay-signature')
-    if (!verifyPayPalWebhook(body, signature)) {
+    if (!verifyWebhookSignature(JSON.stringify(body), signature)) {
       return validationError('Invalid webhook signature')
     }
     
@@ -176,7 +178,9 @@ const paypayWebhookHandler = async (request: NextRequest) => {
         sendPaymentConfirmationEmail(payment.user.email, {
           amount: payment.amount,
           validDate: today,
-          userName: payment.user.name || payment.user.email || 'User'
+          userName: payment.user.name || payment.user.email || 'User',
+          paymentId: payment.id,
+          merchantPaymentId: payment.paypayOrderId
         }).catch(console.error)
         
       } else if (status === 'FAILED' || status === 'CANCELLED') {
@@ -217,9 +221,9 @@ interface PayPalOrderResponse {
   error?: string
 }
 
-async function createPayPalOrder(request: PayPalOrderRequest): Promise<PayPalOrderResponse> {
+async function createPayment(request: PayPalOrderRequest): Promise<PayPalOrderResponse> {
   try {
-    // Mock implementation - replace with actual PayPay API
+    // Development mode - use mock response
     if (process.env.NODE_ENV === 'development') {
       return {
         success: true,
@@ -228,41 +232,43 @@ async function createPayPalOrder(request: PayPalOrderRequest): Promise<PayPalOrd
       }
     }
     
-    // Actual PayPay API implementation would go here
-    const paypayApiUrl = process.env.PAYPAY_API_ENDPOINT || 'https://api.paypay.ne.jp'
-    const response = await fetch(`${paypayApiUrl}/v2/payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.PAYPAY_API_KEY}`,
-        'X-ASSUME-MERCHANT': process.env.PAYPAY_MERCHANT_ID!
-      },
-      body: JSON.stringify({
-        merchantPaymentId: request.merchantPaymentId,
-        amount: {
-          amount: request.amount,
-          currency: 'JPY'
-        },
-        orderDescription: 'スマ学 一日券',
-        redirectUrl: `${process.env.NEXTAUTH_URL}/payment/success`,
-        redirectType: 'WEB_LINK'
-      })
-    })
+    // Production mode - use actual PayPay API
+    const payPayClient = getPayPayClient()
     
-    if (!response.ok) {
-      throw new Error(`PayPay API error: ${response.status}`)
+    const paymentRequest = {
+      merchantPaymentId: request.merchantPaymentId,
+      amount: {
+        amount: request.amount,
+        currency: 'JPY' as const
+      },
+      orderDescription: 'スマ学 一日券',
+      redirectUrl: `${process.env.NEXTAUTH_URL}/payment/success`,
+      redirectType: 'WEB_LINK' as const,
+      userInfo: {
+        userId: request.userInfo.id,
+        email: request.userInfo.email,
+        name: request.userInfo.name
+      }
     }
     
-    const data = await response.json()
+    const response = await payPayClient.createPayment(paymentRequest)
     
     return {
       success: true,
-      paymentId: data.paymentId,
-      paymentUrl: data.links?.payment
+      paymentId: response.paymentId,
+      paymentUrl: response.links.payment
     }
     
   } catch (error) {
     console.error('PayPay API error:', error)
+    
+    if (error instanceof PayPayError) {
+      return {
+        success: false,
+        error: `PayPay Error: ${error.message} (Status: ${error.statusCode})`
+      }
+    }
+    
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -270,25 +276,22 @@ async function createPayPalOrder(request: PayPalOrderRequest): Promise<PayPalOrd
   }
 }
 
-function verifyPayPalWebhook(body: any, signature: string | null): boolean {
+function verifyWebhookSignature(payload: string, signature: string | null): boolean {
   if (process.env.NODE_ENV === 'development') {
     return true // Skip verification in development
   }
   
-  if (!signature || !process.env.PAYPAY_API_SECRET) {
+  if (!signature) {
     return false
   }
   
-  // Implement actual signature verification
-  const expectedSignature = crypto
-    .createHmac('sha256', process.env.PAYPAY_API_SECRET)
-    .update(JSON.stringify(body))
-    .digest('hex')
-  
-  return crypto.timingSafeEqual(
-    Buffer.from(signature, 'hex'),
-    Buffer.from(expectedSignature, 'hex')
-  )
+  try {
+    const payPayClient = getPayPayClient()
+    return payPayClient.verifyWebhookSignature(payload, signature)
+  } catch (error) {
+    console.error('Webhook signature verification error:', error)
+    return false
+  }
 }
 
 async function sendPaymentConfirmationEmail(
@@ -297,36 +300,20 @@ async function sendPaymentConfirmationEmail(
     amount: number
     validDate: Date
     userName: string
+    paymentId: string
+    merchantPaymentId: string
   }
 ) {
   try {
-    // Email sending implementation
-    console.warn(`Sending confirmation email to ${email}:`, data)
+    console.log(`Sending payment confirmation email to ${email}`)
     
-    // Actual email implementation would use nodemailer or similar
-    if (process.env.SMTP_HOST) {
-      const nodemailer = await import('nodemailer')
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      })
-      
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'noreply@sumagaku.com',
-        to: email,
-        subject: 'スマ学 - 決済完了のお知らせ',
-        html: `
-          <h2>決済が完了しました</h2>
-          <p>${data.userName}様</p>
-          <p>スマ学一日券（¥${data.amount}）の決済が正常に完了しました。</p>
-          <p>有効期限: ${data.validDate.toLocaleDateString('ja-JP')}</p>
-          <p>今日一日、ロッカーをご利用いただけます。</p>
-        `
-      })
+    const emailClient = getEmailClient()
+    const success = await emailClient.sendPaymentConfirmation(email, data)
+    
+    if (success) {
+      console.log('Payment confirmation email sent successfully')
+    } else {
+      console.error('Failed to send payment confirmation email')
     }
   } catch (error) {
     console.error('Failed to send confirmation email:', error)
