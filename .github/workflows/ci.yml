@@ -22,7 +22,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
         
     - name: Install dependencies
       run: npm install
@@ -38,8 +37,13 @@ jobs:
       env:
         NODE_ENV: production
         
-    - name: Run tests (when available)
-      run: npm test --if-present
+    - name: Check for tests
+      run: |
+        if [ -f "package.json" ] && grep -q '"test"' package.json; then
+          npm test
+        else
+          echo "No tests found, skipping test step"
+        fi
       
   security-audit:
     runs-on: ubuntu-latest
