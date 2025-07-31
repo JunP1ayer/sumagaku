@@ -142,9 +142,33 @@ export default function PaymentPage() {
 
           {/* 完了メッセージ */}
           <Zoom in={completed} timeout={500}>
-            <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-              <CheckCircleOutlined sx={{ fontSize: 120, color: 'white', mb: 2 }} />
-              <Typography variant="h4" sx={{ color: 'white', fontWeight: 700 }}>
+            <Box sx={{ 
+              position: 'absolute', 
+              top: '50%', 
+              left: '50%', 
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <CheckCircleOutlined sx={{ 
+                fontSize: { xs: 100, sm: 120 }, 
+                color: 'white', 
+                mb: 2,
+                display: 'block',
+                mx: 'auto'
+              }} />
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: 'white', 
+                  fontWeight: 700,
+                  fontSize: { xs: '1.8rem', sm: '2.125rem' },
+                  textAlign: 'center'
+                }}
+              >
                 決済完了！
               </Typography>
             </Box>
