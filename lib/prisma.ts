@@ -10,6 +10,18 @@ declare global {
 }
 
 const createPrismaClient = () => {
+  // ビルド時はデータベース接続を無効化
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL?.includes('localhost')) {
+    return new PrismaClient({
+      log: [],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy'
+        }
+      }
+    })
+  }
+  
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? [
       {
