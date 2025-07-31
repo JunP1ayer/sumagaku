@@ -93,8 +93,7 @@ export const paypayCallbackSchema = z.object({
 
 export const createLockerSchema = z.object({
   lockerNumber: z.number().int().min(1).max(9999),
-  location: z.string().min(1).max(100),
-  qrCode: z.string().min(10).max(200)
+  location: z.string().min(1).max(100)
 })
 
 export const updateLockerSchema = z.object({
