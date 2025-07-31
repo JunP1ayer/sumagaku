@@ -134,16 +134,16 @@ export default function DashboardPage() {
 
             {/* メインアクションボタン */}
             <Zoom in={mounted} timeout={1000}>
-              <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Button
                   onClick={handleMainAction}
                   sx={{
-                    width: 200,
-                    height: 200,
+                    width: { xs: 180, sm: 200 },
+                    height: { xs: 180, sm: 200 },
                     borderRadius: '50%',
                     backgroundColor: 'white',
                     color: 'primary.main',
-                    fontSize: '1.2rem',
+                    fontSize: { xs: '1rem', sm: '1.2rem' },
                     fontWeight: 700,
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -151,8 +151,9 @@ export default function DashboardPage() {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 1,
+                    gap: { xs: 0.5, sm: 1 },
                     textAlign: 'center',
+                    mx: 'auto',
                     '&:hover': {
                       backgroundColor: 'white',
                       transform: 'scale(1.05)',

@@ -123,8 +123,8 @@ export default function TimerPage() {
               <Paper 
                 elevation={8}
                 sx={{ 
-                  p: 6,
-                  mb: 6,
+                  p: { xs: 3, sm: 6 },
+                  mb: { xs: 4, sm: 6 },
                   borderRadius: 4,
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)'
@@ -135,9 +135,9 @@ export default function TimerPage() {
                   sx={{ 
                     fontFamily: 'monospace',
                     fontWeight: 300,
-                    fontSize: '4rem',
+                    fontSize: { xs: '2.5rem', sm: '4rem' },
                     color: 'primary.main',
-                    mb: 4,
+                    mb: { xs: 3, sm: 4 },
                     letterSpacing: '0.1em'
                   }}
                 >
@@ -153,14 +153,15 @@ export default function TimerPage() {
                     value={hours}
                     onChange={(e, value) => setHours(value)}
                     min={0}
-                    max={4}
+                    max={10}
                     step={1}
                     marks={[
                       { value: 0, label: '0h' },
-                      { value: 1, label: '1h' },
                       { value: 2, label: '2h' },
-                      { value: 3, label: '3h' },
-                      { value: 4, label: '4h' }
+                      { value: 4, label: '4h' },
+                      { value: 6, label: '6h' },
+                      { value: 8, label: '8h' },
+                      { value: 10, label: '10h' }
                     ]}
                     sx={{
                       color: 'primary.main',

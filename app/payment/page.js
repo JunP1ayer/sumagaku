@@ -89,17 +89,17 @@ export default function PaymentPage() {
 
           {/* 決済ボタン */}
           <Zoom in={mounted && !completed} timeout={1000}>
-            <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Button
                 onClick={handlePayment}
                 disabled={processing || completed}
                 sx={{
-                  width: 220,
-                  height: 220,
+                  width: { xs: 200, sm: 220 },
+                  height: { xs: 200, sm: 220 },
                   borderRadius: '50%',
                   backgroundColor: 'white',
                   color: '#FF0033',
-                  fontSize: '1.1rem',
+                  fontSize: { xs: '1rem', sm: '1.1rem' },
                   fontWeight: 700,
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -107,8 +107,9 @@ export default function PaymentPage() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 1.5,
+                  gap: { xs: 1, sm: 1.5 },
                   textAlign: 'center',
+                  mx: 'auto',
                   '&:hover': {
                     backgroundColor: 'white',
                     transform: 'scale(1.05)',
@@ -126,12 +127,12 @@ export default function PaymentPage() {
               >
                 {processing ? (
                   <>
-                    <CircularProgress size={48} sx={{ color: '#FF0033' }} />
+                    <CircularProgress size={{ xs: 40, sm: 48 }} sx={{ color: '#FF0033' }} />
                     決済処理中
                   </>
                 ) : (
                   <>
-                    <PaymentOutlined sx={{ fontSize: 64 }} />
+                    <PaymentOutlined sx={{ fontSize: { xs: 56, sm: 64 } }} />
                     PayPayで支払う
                   </>
                 )}
