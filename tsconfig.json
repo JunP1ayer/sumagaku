@@ -13,6 +13,9 @@
     "jsx": "preserve",
     "incremental": true,
     "noImplicitAny": false,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
     "plugins": [
       {
         "name": "next"
