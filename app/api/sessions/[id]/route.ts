@@ -132,6 +132,10 @@ const endSessionHandler = async (
     const endTime = new Date()
     const actualDuration = Math.floor((endTime.getTime() - session.startTime.getTime()) / 60000)
     
+    // サーバーサイドタイマーをクリア
+    const { sessionTimerManager } = await import('@/lib/session-timer')
+    sessionTimerManager.clearSessionTimer(params.id)
+    
     // End session and update locker status in transaction
     await prisma.$transaction(async (tx) => {
       // Update session
@@ -234,6 +238,10 @@ const extendSessionHandler = async (
       
       return { extension, session: updatedSession }
     })
+    
+    // サーバーサイドタイマーを延長時間で再設定
+    const { sessionTimerManager } = await import('@/lib/session-timer')
+    await sessionTimerManager.extendSessionTimer(params.id)
     
     // Calculate new end time
     const originalEndTime = new Date(session.startTime.getTime() + session.plannedDuration * 60 * 1000)

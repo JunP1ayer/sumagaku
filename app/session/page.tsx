@@ -54,36 +54,45 @@ export default function SessionPage(): JSX.Element {
 
   const handleSessionComplete = async () => {
     try {
-      // セッション終了APIを呼び出し
-      const response = await fetch(`/api/sessions/${currentSession.lockerId}`, {
-        method: 'PATCH',
+      if (!currentSession.sessionId) {
+        console.error('No active session ID')
+        return
+      }
+      
+      // セッション終了APIを呼び出し (正しいパスとメソッド)
+      const response = await fetch(`/api/sessions/${currentSession.sessionId}`, {
+        method: 'DELETE', // DELETEメソッドでセッション終了
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({
-          status: 'COMPLETED',
-          endTime: new Date().toISOString(),
-          actualDuration: Math.floor((currentSession.duration || 0) * 60 - currentSession.timeRemaining / 60)
-        }),
       })
       
       if (response.ok) {
-        // ロッカー解錠処理
-        const unlockResponse = await fetch(`/api/lockers/${currentSession.lockerId}/control`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'unlock'
-          }),
-        })
+        // ロッカー解錠処理 (正しいパスを使用)
+        if (currentSession.lockerId) {
+          const unlockResponse = await fetch(`/api/lockers/${currentSession.lockerId}/control`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({
+              action: 'unlock'
+            }),
+          })
+          
+          if (!unlockResponse.ok) {
+            console.error('Failed to unlock locker')
+          }
+        }
         
         // ローカル状態更新
         endSession()
         router.push('/complete')
       } else {
-        console.error('Failed to complete session')
+        const errorData = await response.json()
+        console.error('Failed to complete session:', errorData)
       }
     } catch (error) {
       console.error('Error completing session:', error)
@@ -153,7 +162,7 @@ export default function SessionPage(): JSX.Element {
                 mt: 1
               }}
             >
-              ロッカー {currentSession.lockerId}
+              ロッカー {currentSession.lockerId || '未設定'}
             </Typography>
           </Box>
 

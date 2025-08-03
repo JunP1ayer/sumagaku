@@ -136,6 +136,10 @@ const createSessionHandler = async (request: AuthenticatedRequest) => {
       return session
     })
     
+    // サーバーサイドタイマー開始
+    const { sessionTimerManager } = await import('@/lib/session-timer')
+    await sessionTimerManager.startSessionTimer(result.id)
+    
     // Calculate end time
     const endTime = new Date(result.startTime.getTime() + sessionData.plannedDuration * 60 * 1000)
     

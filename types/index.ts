@@ -1,25 +1,98 @@
-// ユーザー関連の型定義
+// ユーザー関連の型定義 (Prisma Schema準拠)
 export interface User {
+  id: string
   email: string
   name: string
-  studentId: string
-  loginTime: string
+  studentId: string | null
+  university: string
+  department: string | null
+  year: number | null
+  role: UserRole
+  status: UserStatus
+  createdAt: string
+  updatedAt: string
+  lastLoginAt: string | null
+  loginCount: number
 }
 
-// 一日券関連の型定義
+export enum UserRole {
+  STUDENT = 'STUDENT',
+  FACULTY = 'FACULTY', 
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN'
+}
+
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  PENDING_VERIFICATION = 'PENDING_VERIFICATION',
+  DEACTIVATED = 'DEACTIVATED'
+}
+
+// 一日券関連の型定義 (Prisma Schema準拠)
 export interface DailyPass {
+  id: string
+  userId: string
+  paymentId: string
+  amount: number
+  currency: string
+  validDate: string
+  purchasedAt: string
+  status: PassStatus
+  usageCount: number
+  maxUsage: number
+  createdAt: string
+  updatedAt: string
+}
+
+// フロントエンド用の一日券状態
+export interface DailyPassState {
   purchaseDate: string | null
   isActive: boolean
   transactionId: string | null
 }
 
-// セッション関連の型定義
+export enum PassStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  REFUNDED = 'REFUNDED',
+  SUSPENDED = 'SUSPENDED'
+}
+
+// セッション関連の型定義 (Prisma Schema準拠)
 export interface Session {
+  id: string
+  userId: string
+  lockerNumber: number
+  lockerId: string
+  status: SessionStatus
+  startTime: string
+  endTime: string | null
+  plannedDuration: number // 分単位
+  actualDuration: number | null // 分単位
+  unlockCode: string
+  phoneAccess: number
+  extendedTimes: number
+  createdAt: string
+  updatedAt: string
+}
+
+// フロントエンド用のセッション状態
+export interface SessionState {
+  sessionId: string | null
   lockerId: number | null
   startTime: string | null
   duration: number | null // 分単位
   isActive: boolean
   timeRemaining: number // 秒単位
+}
+
+export enum SessionStatus {
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  INTERRUPTED = 'INTERRUPTED', 
+  EXTENDED = 'EXTENDED',
+  EMERGENCY_ACCESSED = 'EMERGENCY_ACCESSED'
 }
 
 // 準備時間関連の型定義
@@ -30,11 +103,37 @@ export interface PreparationTime {
   duration: number | null // 分単位
 }
 
-// ロッカー関連の型定義
+// ロッカー関連の型定義 (Prisma Schema準拠)
 export interface Locker {
+  id: string
+  lockerNumber: number
+  location: string
+  qrCode: string
+  status: LockerStatus
+  batteryLevel: number | null
+  temperature: number | null
+  humidity: number | null
+  lastMaintenance: string | null
+  maintenanceNotes: string | null
+  totalUsages: number
+  totalHours: number
+  createdAt: string
+  updatedAt: string
+}
+
+// フロントエンド用のロッカー状態
+export interface LockerState {
   id: number
   isAvailable: boolean
   location: string
+}
+
+export enum LockerStatus {
+  AVAILABLE = 'AVAILABLE',
+  OCCUPIED = 'OCCUPIED',
+  MAINTENANCE = 'MAINTENANCE',
+  OUT_OF_ORDER = 'OUT_OF_ORDER',
+  RESERVED = 'RESERVED'
 }
 
 // アプリストア全体の型定義
@@ -42,10 +141,10 @@ export interface AppStore {
   // State
   user: User | null
   isAuthenticated: boolean
-  dailyPass: DailyPass
-  currentSession: Session
+  dailyPass: DailyPassState
+  currentSession: SessionState
   preparationTime: PreparationTime
-  lockers: Locker[]
+  lockers: LockerState[]
 
   // Actions
   setUser: (user: User) => void
@@ -53,12 +152,35 @@ export interface AppStore {
   isDailyPassValid: () => boolean
   startPreparation: (lockerId: number, duration: number) => void
   updatePreparationTimer: () => void
-  startSessionFromPreparation: () => void
-  startSession: (lockerId: number, duration: number) => void
+  startSessionFromPreparation: (sessionId: string) => void
+  startSession: (sessionId: string, lockerId: number, duration: number) => void
   updateTimer: () => void
   endSession: () => void
   releaseLocker: (lockerId: number) => void
   reset: () => void
+}
+
+// 決済関連の型定義 (Prisma Schema準拠)
+export interface Payment {
+  id: string
+  userId: string
+  paypayOrderId: string
+  paypayTxId: string | null
+  amount: number
+  currency: string
+  status: PaymentStatus
+  createdAt: string
+  updatedAt: string
+  completedAt: string | null
+  refundedAt: string | null
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED',
+  CANCELLED = 'CANCELLED'
 }
 
 // PayPay決済関連（将来の拡張用）

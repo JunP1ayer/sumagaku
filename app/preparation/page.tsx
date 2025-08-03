@@ -60,25 +60,20 @@ export default function PreparationPage(): JSX.Element {
 
   const handleStartSession = async () => {
     try {
-      // セッション状態をACTIVEに更新
-      const response = await fetch(`/api/sessions/${preparationTime.lockerId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: 'ACTIVE',
-          startTime: new Date().toISOString()
-        }),
-      })
-      
-      if (response.ok) {
-        startSessionFromPreparation()
-        router.push('/session')
-      } else {
-        console.error('Failed to start session')
+      // セッションストレージからセッションIDを取得
+      const sessionId = sessionStorage.getItem('sessionId')
+      if (!sessionId) {
+        console.error('No session ID found')
         router.push('/dashboard')
+        return
       }
+      
+      // セッションは既にACTIVE状態で作成済み、フロントエンド状態を更新
+      startSessionFromPreparation(sessionId)
+      
+      // セッションページへ遷移
+      router.push('/session')
+      
     } catch (error) {
       console.error('Error starting session:', error)
       router.push('/dashboard')

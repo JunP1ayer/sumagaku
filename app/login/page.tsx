@@ -435,21 +435,42 @@ export default function LoginPage(): JSX.Element {
                   選択画面に戻る
                 </Button>
 
-                <Button
-                  variant="text"
-                  onClick={() => setShowGuide(true)}
-                  startIcon={<HelpOutlineOutlined />}
-                  sx={{
-                    width: '100%',
-                    py: 1.5,
-                    color: 'primary.main',
-                    '&:hover': {
-                      backgroundColor: 'rgba(15, 122, 96, 0.05)',
-                    }
-                  }}
-                >
-                  使い方ガイドを見る
-                </Button>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Button
+                    variant="text"
+                    onClick={() => setShowGuide(true)}
+                    startIcon={<HelpOutlineOutlined />}
+                    sx={{
+                      width: '100%',
+                      py: 1.5,
+                      color: 'primary.main',
+                      '&:hover': {
+                        backgroundColor: 'rgba(15, 122, 96, 0.05)',
+                      }
+                    }}
+                  >
+                    使い方ガイドを見る
+                  </Button>
+                  
+                  {/* パスワードを忘れた場合のリンク */}
+                  {isLoginMode && (
+                    <Button
+                      variant="text"
+                      onClick={() => router.push('/auth/forgot-password')}
+                      sx={{
+                        width: '100%',
+                        py: 1,
+                        color: 'text.secondary',
+                        fontSize: '0.875rem',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        }
+                      }}
+                    >
+                      パスワードを忘れた場合
+                    </Button>
+                  )}
+                </Box>
 
                 <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', mt: 2 }}>
                   ログインすることで、スマ学の利用規約に同意したものとみなされます

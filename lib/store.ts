@@ -25,6 +25,7 @@ const useAppStore = create<AppStore>((set, get) => ({
   
   // 現在のセッション
   currentSession: {
+    sessionId: null, // セッションID (Prisma から)
     lockerId: null,
     startTime: null,
     duration: null, // 分単位
@@ -106,13 +107,14 @@ const useAppStore = create<AppStore>((set, get) => ({
   },
 
   // 準備時間終了後にセッション開始
-  startSessionFromPreparation: () => {
+  startSessionFromPreparation: (sessionId: string) => {
     const { preparationTime } = get()
     if (!preparationTime.lockerId || !preparationTime.duration) return
 
     const startTime = new Date().toISOString()
     set((state) => ({
       currentSession: {
+        sessionId,
         lockerId: preparationTime.lockerId,
         startTime,
         duration: preparationTime.duration,
@@ -129,10 +131,11 @@ const useAppStore = create<AppStore>((set, get) => ({
   },
 
   // セッション開始（直接）
-  startSession: (lockerId: number, duration: number) => {
+  startSession: (sessionId: string, lockerId: number, duration: number) => {
     const startTime = new Date().toISOString()
     set((state) => ({
       currentSession: {
+        sessionId,
         lockerId,
         startTime,
         duration,
@@ -202,6 +205,7 @@ const useAppStore = create<AppStore>((set, get) => ({
       transactionId: null,
     },
     currentSession: {
+      sessionId: null,
       lockerId: null,
       startTime: null,
       duration: null,

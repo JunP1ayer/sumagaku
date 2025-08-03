@@ -155,12 +155,14 @@ export default function DashboardPage(): JSX.Element {
         return
       }
       
-      // ローカル状態更新
+      // ローカル状態更新 (セッションIDを保存)
+      const sessionId = sessionData.data.session.id
       startPreparation(availableLocker.id, totalMinutes)
       setShowTimerDialog(false)
       setSnackbar({open: true, message: `ロッカー${availableLocker.location}を予約しました`, severity: 'success'})
       
-      // 解錠コードをセッションストレージに保存（メモ画面で使用）
+      // セッション情報をセッションストレージに保存
+      sessionStorage.setItem('sessionId', sessionId)
       sessionStorage.setItem('unlockCode', unlockCode)
       router.push('/memo-code')
       
