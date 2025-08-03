@@ -158,23 +158,23 @@ export default function LoginPage(): JSX.Element {
     <Box sx={{ 
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #F8F9FA 0%, #E8F5E8 100%)',
-      py: 4
+      py: { xs: 2, sm: 4 }
     }}>
       <Container maxWidth="sm">
         <Fade in={mounted} timeout={800}>
           <Box>
             {/* ヘッダー */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
               <Button
                 onClick={() => router.push('/')}
                 sx={{ 
                   position: 'absolute', 
-                  top: 32, 
-                  left: 32,
+                  top: { xs: 16, sm: 32 }, 
+                  left: { xs: 16, sm: 32 },
                   color: 'text.secondary',
-                  minWidth: 40,
-                  width: 40,
-                  height: 40,
+                  minWidth: { xs: 48, sm: 40 },
+                  width: { xs: 48, sm: 40 },
+                  height: { xs: 48, sm: 40 },
                   borderRadius: '50%',
                   p: 0
                 }}
@@ -183,9 +183,9 @@ export default function LoginPage(): JSX.Element {
               </Button>
               
               <SchoolOutlined sx={{ 
-                fontSize: 60, 
+                fontSize: { xs: 48, sm: 60 }, 
                 color: 'primary.main',
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
                 filter: 'drop-shadow(0 4px 8px rgba(15, 122, 96, 0.3))'
               }} />
               
@@ -195,12 +195,16 @@ export default function LoginPage(): JSX.Element {
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                mb: 1
+                mb: { xs: 0.5, sm: 1 },
+                fontSize: { xs: '1.75rem', sm: '2rem' }
               }}>
                 {isLoginMode ? 'ログイン' : '新規登録'}
               </Typography>
               
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" sx={{
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                px: { xs: 2, sm: 0 }
+              }}>
                 {isLoginMode ? 'メールアドレスとパスワードでログイン' : 'お名前、メールアドレス、パスワードで新規登録'}
               </Typography>
             </Box>

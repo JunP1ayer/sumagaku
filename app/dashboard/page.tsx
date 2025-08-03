@@ -184,7 +184,7 @@ export default function DashboardPage(): JSX.Element {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      p: 3,
+      p: { xs: 2, sm: 3 },
       position: 'relative'
     }}>
       {/* ログアウトボタン */}
@@ -192,10 +192,12 @@ export default function DashboardPage(): JSX.Element {
         onClick={handleLogout}
         sx={{ 
           position: 'absolute',
-          top: 24,
-          right: 24,
+          top: { xs: 16, sm: 24 },
+          right: { xs: 16, sm: 24 },
           color: 'white',
           opacity: 0.8,
+          minHeight: { xs: 48, sm: 44 },
+          minWidth: { xs: 48, sm: 44 },
           '&:hover': {
             opacity: 1,
             backgroundColor: 'rgba(255, 255, 255, 0.1)'
@@ -240,12 +242,12 @@ export default function DashboardPage(): JSX.Element {
                 <Button
                   onClick={handleMainAction}
                   sx={{
-                    width: { xs: 180, sm: 200 },
-                    height: { xs: 180, sm: 200 },
+                    width: { xs: 160, sm: 180, md: 200 },
+                    height: { xs: 160, sm: 180, md: 200 },
                     borderRadius: '50%',
                     backgroundColor: 'white',
                     color: 'primary.main',
-                    fontSize: { xs: '1rem', sm: '1.2rem' },
+                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.2rem' },
                     fontWeight: 700,
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -253,7 +255,7 @@ export default function DashboardPage(): JSX.Element {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: { xs: 0.5, sm: 1 },
+                    gap: { xs: 0.3, sm: 0.5, md: 1 },
                     textAlign: 'center',
                     mx: 'auto',
                     '&:hover': {
@@ -263,23 +265,34 @@ export default function DashboardPage(): JSX.Element {
                     },
                     '&:active': {
                       transform: 'scale(0.98)',
-                    }
+                    },
+                    '@media (hover: none)': {
+                      '&:hover': {
+                        transform: 'none',
+                      },
+                    },
                   }}
                 >
                   {currentSession.isActive ? (
                     <>
-                      <TimerOutlined sx={{ fontSize: 48 }} />
-                      集中モード中
+                      <TimerOutlined sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />
+                      <Box component="span" sx={{ fontSize: 'inherit', lineHeight: 1.2 }}>
+                        集中モード中
+                      </Box>
                     </>
                   ) : isPassValid ? (
                     <>
-                      <LockOpenOutlined sx={{ fontSize: 48 }} />
-                      ロッカー利用
+                      <LockOpenOutlined sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />
+                      <Box component="span" sx={{ fontSize: 'inherit', lineHeight: 1.2 }}>
+                        ロッカー利用
+                      </Box>
                     </>
                   ) : (
                     <>
-                      <LocalActivityOutlined sx={{ fontSize: 48 }} />
-                      一日券購入
+                      <LocalActivityOutlined sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />
+                      <Box component="span" sx={{ fontSize: 'inherit', lineHeight: 1.2 }}>
+                        一日券購入
+                      </Box>
                     </>
                   )}
                 </Button>
