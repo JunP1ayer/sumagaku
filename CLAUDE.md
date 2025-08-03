@@ -18,6 +18,11 @@ npm run type-check
 # Linting
 npm run lint
 
+# Testing
+npm run test           # Run tests once
+npm run test:watch     # Run tests in watch mode
+npm run test:coverage  # Run tests with coverage report
+
 # Database operations
 npx prisma generate    # Generate Prisma client
 npx prisma db push     # Push schema changes to database
@@ -32,14 +37,14 @@ npx prisma studio      # Open database browser
 ## Architecture Overview
 
 ### Application Structure
-**Sumagaku** is an enterprise-grade smart locker system for Nagoya University built with Next.js 14 App Router. The architecture follows a layered enterprise pattern:
+**Sumagaku (スマ学)** is a smart locker learning support system for Nagoya University that helps students achieve better focus by physically separating them from their smartphones. Built with Next.js 14 App Router following enterprise patterns:
 
 - **Frontend**: Next.js 14 + TypeScript + Material-UI + Zustand state management
-- **Backend**: Next.js API routes with middleware-based request processing
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js with university SSO (email-based)
-- **Payments**: PayPay integration for daily passes
-- **IoT**: Smart locker control system
+- **Backend**: Next.js API routes with middleware-based request processing  
+- **Database**: PostgreSQL (Supabase) with Prisma ORM
+- **Authentication**: Email-based registration (any domain accepted)
+- **Payments**: PayPay integration for ¥100/day passes
+- **IoT**: Smart locker control system (hardware in development)
 
 ### Key Directories
 - **`/app/`** - Next.js 14 App Router structure
@@ -47,9 +52,9 @@ npx prisma studio      # Open database browser
   - Pages and layouts following App Router conventions
 - **`/lib/`** - Core business logic and utilities
   - `prisma.ts` - Database client with connection pooling
-  - `auth-config.ts` - NextAuth.js configuration
+  - `store.ts` - Zustand state management for sessions, timers, and user state
   - `validations.ts` - Zod schemas for API validation
-  - `iot-locker.ts` - IoT device integration
+  - `api-response.ts` - Standardized API response formats
   - `middleware.ts` - Request/response processing middleware
 - **`/prisma/`** - Database schema and migrations
 - **`/types/`** - TypeScript type definitions
@@ -63,10 +68,16 @@ The Prisma schema includes:
 - **Audit logging** for all system operations
 - **Analytics** for usage tracking
 
-### State Management
-- **Zustand** for client-side state management
-- **NextAuth.js** for authentication state
-- **Material-UI** theme provider for UI state
+### User Flow and State Management
+**Core User Journey**: `login → dashboard → memo-code → preparation → session → complete`
+
+- **Zustand** (`lib/store.ts`) manages:
+  - User authentication state
+  - Daily pass validation (¥100/day)
+  - Session timers (preparation: 60s, study sessions)
+  - Locker availability and reservations
+- **User-set unlock codes**: 4-6 digit codes set by users for locker access
+- **Session lifecycle**: Preparation → Active → Completed with real-time timers
 
 ## Important Technical Details
 
@@ -86,17 +97,17 @@ The Prisma schema includes:
 - Validation using Zod schemas from `lib/validations.ts`
 
 ### Authentication Flow
-- University SSO integration (supports 3 email domains)
-- JWT-based session management
+- Open email registration (any domain accepted - designed for library users)
+- Simple email/password authentication for MVP
 - Role-based access control throughout the system
 
 ### Environment Variables
 Required for production:
-- `DATABASE_URL` - PostgreSQL connection string
-- `NEXTAUTH_URL` - Application URL
+- `DATABASE_URL` - PostgreSQL connection string (currently Supabase)
+- `NEXTAUTH_URL` - Application URL  
 - `NEXTAUTH_SECRET` - NextAuth.js secret
 - `JWT_SECRET` - JWT signing secret
-- `PAYPAY_API_KEY`, `PAYPAY_API_SECRET`, `PAYPAY_MERCHANT_ID` - PayPay integration
+- `PAYPAY_API_KEY`, `PAYPAY_API_SECRET`, `PAYPAY_MERCHANT_ID` - PayPay integration (not yet configured)
 
 ## Common Development Patterns
 
@@ -141,13 +152,41 @@ const result = await prisma.$transaction(async (tx) => {
 - Validation schemas centralized in `lib/validations.ts`
 
 ### Database Changes
-1. Modify `prisma/schema.prisma`
-2. Run `npx prisma db push` to apply changes
-3. Regenerate client with `npx prisma generate`
-4. Update TypeScript types if needed
+**Important**: This project uses Supabase with direct SQL management
+1. Modify `prisma/schema.prisma` for local development
+2. Use Supabase SQL Editor for production schema changes
+3. Run `npx prisma db push` for local development
+4. Run `npx prisma generate` to update client types
+5. Update TypeScript types if needed
+
+### Session Management Patterns
+```typescript
+// Access Zustand store in components
+const { currentSession, startPreparation, updateTimer } = useAppStore()
+
+// Timer management pattern (see /session and /preparation pages)
+useEffect(() => {
+  const timer = setInterval(() => {
+    updateTimer()
+    // Check for completion conditions
+  }, 1000)
+  return () => clearInterval(timer)
+}, [])
+```
 
 ### Deployment Notes
 - Application is optimized for Vercel deployment
-- Build includes automatic Prisma client generation
+- Build includes automatic Prisma client generation via `postinstall` script
 - Environment variables must be configured in Vercel dashboard
-- Database connection uses connection pooling for production scalability
+- Database connection uses Supabase PostgreSQL with connection pooling
+- Always run `npm run build` locally before pushing to catch build errors early
+
+## Business Context
+**Sumagaku (スマ学)** = "Smart Learning" - A learning support system that helps students focus by physically separating them from smartphones. Targeting Nagoya University initially, with plans to expand to other universities and educational institutions.
+
+**Key differentiators**:
+- Physical smartphone separation (not app-based blocking)
+- User-set unlock codes for personal security  
+- "Ritual UX" with preparation time and completion ceremony
+- Learning analytics dashboard showing study progress
+- Future expansion: IoT integration, receipt printing, biometric unlock
