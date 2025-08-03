@@ -57,7 +57,10 @@ export const createSessionSchema = z.object({
     .number()
     .int()
     .min(15, '最低15分以上に設定してください')
-    .max(600, '最大10時間まで設定できます') // 10時間 = 600分
+    .max(600, '最大10時間まで設定できます'), // 10時間 = 600分
+  unlockCode: z
+    .string()
+    .regex(/^\d{4,6}$/, '解錠コードは4-6桁の数字で入力してください')
 })
 
 export const extendSessionSchema = z.object({

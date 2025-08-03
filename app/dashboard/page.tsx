@@ -52,6 +52,7 @@ export default function DashboardPage(): JSX.Element {
   const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'error' | 'success' | 'warning'}>({
     open: false, message: '', severity: 'error'
   })
+  const [unlockCode, setUnlockCode] = useState<string>('')
 
   useEffect(() => {
     setMounted(true)
@@ -98,6 +99,16 @@ export default function DashboardPage(): JSX.Element {
       return
     }
     
+    if (!unlockCode || unlockCode.length < 4 || unlockCode.length > 6) {
+      setSnackbar({open: true, message: '解錠コードは4-6桁の数字で入力してください', severity: 'warning'})
+      return
+    }
+    
+    if (!/^\d+$/.test(unlockCode)) {
+      setSnackbar({open: true, message: '解錠コードは数字のみで入力してください', severity: 'warning'})
+      return
+    }
+    
     try {
       // 利用可能なロッカーを取得
       const lockersResponse = await fetch('/api/lockers')
@@ -122,7 +133,8 @@ export default function DashboardPage(): JSX.Element {
         },
         body: JSON.stringify({
           lockerId: availableLocker.id,
-          plannedDuration: totalMinutes
+          plannedDuration: totalMinutes,
+          unlockCode: unlockCode
         }),
       })
       
@@ -137,7 +149,10 @@ export default function DashboardPage(): JSX.Element {
       startPreparation(availableLocker.id, totalMinutes)
       setShowTimerDialog(false)
       setSnackbar({open: true, message: `ロッカー${availableLocker.location}を予約しました`, severity: 'success'})
-      router.push('/preparation')
+      
+      // 解錠コードをセッションストレージに保存（メモ画面で使用）
+      sessionStorage.setItem('unlockCode', unlockCode)
+      router.push('/memo-code')
       
     } catch (error) {
       setSnackbar({open: true, message: 'サーバーエラーが発生しました', severity: 'error'})
@@ -435,11 +450,45 @@ export default function DashboardPage(): JSX.Element {
                     />
                   </Box>
                 </Box>
+
+                {/* 解錠コード設定 */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                    解錠コード (4-6桁の数字)
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <input
+                      type="text"
+                      value={unlockCode}
+                      onChange={(e) => setUnlockCode(e.target.value)}
+                      placeholder="例: 1234"
+                      maxLength={6}
+                      style={{
+                        fontSize: '1.5rem',
+                        padding: '12px 16px',
+                        textAlign: 'center',
+                        border: '2px solid #e0e0e0',
+                        borderRadius: '8px',
+                        width: '140px',
+                        fontFamily: 'monospace',
+                        letterSpacing: '0.2em'
+                      }}
+                    />
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mt: 1 }}>
+                    覚えやすい数字を設定してください
+                  </Typography>
+                </Box>
                 
                 {/* エラーメッセージ */}
                 {totalMinutes < 5 && (
-                  <Typography variant="body2" color="error" sx={{ textAlign: 'center', mb: 3 }}>
+                  <Typography variant="body2" color="error" sx={{ textAlign: 'center', mb: 1 }}>
                     最低5分以上に設定してください
+                  </Typography>
+                )}
+                {unlockCode && (unlockCode.length < 4 || unlockCode.length > 6 || !/^\d+$/.test(unlockCode)) && (
+                  <Typography variant="body2" color="error" sx={{ textAlign: 'center', mb: 1 }}>
+                    解錠コードは4-6桁の数字で入力してください
                   </Typography>
                 )}
                 
@@ -449,7 +498,7 @@ export default function DashboardPage(): JSX.Element {
                   variant="contained"
                   size="large"
                   fullWidth
-                  disabled={totalMinutes < 5}
+                  disabled={totalMinutes < 5 || !unlockCode || unlockCode.length < 4 || unlockCode.length > 6 || !/^\d+$/.test(unlockCode)}
                   sx={{
                     py: 2,
                     fontSize: '1.2rem',

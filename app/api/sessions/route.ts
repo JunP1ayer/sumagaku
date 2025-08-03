@@ -84,8 +84,8 @@ const createSessionHandler = async (request: AuthenticatedRequest) => {
       return validationError('既にアクティブなセッションがあります')
     }
     
-    // Generate unique unlock code
-    const unlockCode = generateUnlockCode()
+    // Use user-provided unlock code
+    const unlockCode = sessionData.unlockCode
     
     // Create session and update locker status in transaction
     const result = await prisma.$transaction(async (tx) => {
