@@ -14,7 +14,9 @@ import {
   Chip,
   Slider,
   Snackbar,
-  Alert
+  Alert,
+  TextField,
+  InputAdornment
 } from '@mui/material'
 import { 
   LockOpenOutlined,
@@ -24,7 +26,8 @@ import {
   CheckCircleOutlineOutlined,
   LocalActivityOutlined,
   PlayArrowOutlined,
-  CloseOutlined
+  CloseOutlined,
+  LockOutlined
 } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -403,12 +406,14 @@ export default function DashboardPage(): JSX.Element {
                       value={hours}
                       onChange={(e, value) => setHours(Array.isArray(value) ? value[0] : value)}
                       min={0}
-                      max={8}
+                      max={10}
                       step={1}
                       marks={[
-                        { value: 0, label: '0h' },
-                        { value: 4, label: '4h' },
-                        { value: 8, label: '8h' }
+                        { value: 0, label: '0' },
+                        { value: 2, label: '2' },
+                        { value: 5, label: '5' },
+                        { value: 8, label: '8' },
+                        { value: 10, label: '10' }
                       ]}
                       sx={{
                         '& .MuiSlider-thumb': {
@@ -420,6 +425,9 @@ export default function DashboardPage(): JSX.Element {
                         },
                         '& .MuiSlider-rail': {
                           height: 4,
+                        },
+                        '& .MuiSlider-markLabel': {
+                          fontSize: '0.75rem',
                         }
                       }}
                     />
@@ -458,28 +466,58 @@ export default function DashboardPage(): JSX.Element {
 
                 {/* 解錠コード設定 */}
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ mb: 1.5, fontWeight: 600, textAlign: 'center' }}>
                     解錠コード (4-6桁の数字)
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <input
-                      type="text"
+                    <TextField
                       value={unlockCode}
                       onChange={(e) => setUnlockCode(e.target.value)}
-                      placeholder="例: 1234"
-                      maxLength={6}
-                      style={{
-                        fontSize: '1.2rem',
-                        padding: '8px 12px',
-                        textAlign: 'center',
-                        border: '2px solid #e0e0e0',
-                        borderRadius: '6px',
-                        width: '120px',
-                        fontFamily: 'monospace',
-                        letterSpacing: '0.1em'
+                      placeholder="1234"
+                      inputProps={{ 
+                        maxLength: 6,
+                        style: { 
+                          textAlign: 'center',
+                          fontFamily: 'monospace',
+                          fontSize: '1.3rem',
+                          letterSpacing: '0.2em',
+                          fontWeight: 600
+                        }
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockOutlined color="primary" sx={{ fontSize: 20 }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        width: 180,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          backgroundColor: 'rgba(15, 122, 96, 0.02)',
+                          '& fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: 2,
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: 2,
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: 2,
+                          },
+                        },
+                        '& .MuiInputAdornment-root': {
+                          marginRight: 1
+                        }
                       }}
                     />
                   </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mt: 0.5 }}>
+                    覚えやすい数字を入力してください
+                  </Typography>
                 </Box>
                 
                 {/* エラーメッセージ */}
