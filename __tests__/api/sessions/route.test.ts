@@ -306,22 +306,32 @@ describe('/api/sessions', () => {
           userId: mockUser.id,
           lockerId: 'locker1',
           startTime: new Date(),
+          endTime: null,
+          plannedDuration: 120,
+          actualDuration: null,
           status: 'ACTIVE',
           locker: {
+            id: 'locker1',
             lockerNumber: 101,
             location: '図書館1階',
           },
+          extensions: [],
         },
         {
           id: 'session2',
           userId: mockUser.id,
           lockerId: 'locker2',
           startTime: new Date(Date.now() - 3600000), // 1 hour ago
+          endTime: new Date(Date.now() - 1800000), // 30 min ago
+          plannedDuration: 90,
+          actualDuration: 30,
           status: 'COMPLETED',
           locker: {
+            id: 'locker2',
             lockerNumber: 102,
             location: '図書館1階',
           },
+          extensions: [],
         },
       ]
 
@@ -334,12 +344,12 @@ describe('/api/sessions', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(data.data.sessions).toHaveLength(2)
-      expect(data.data.pagination).toMatchObject({
+      expect(data.data).toHaveLength(2)
+      expect(data.metadata.pagination).toMatchObject({
         page: 1,
         limit: 10,
         total: 2,
-        pages: 1,
+        totalPages: 1,
       })
     })
 
@@ -347,8 +357,19 @@ describe('/api/sessions', () => {
       mockPrisma.session.findMany.mockResolvedValue([
         {
           id: 'active-session',
+          userId: mockUser.id,
+          lockerId: 'locker1',
+          startTime: new Date(),
+          endTime: null,
+          plannedDuration: 60,
+          actualDuration: null,
           status: 'ACTIVE',
-          locker: { lockerNumber: 101 },
+          locker: { 
+            id: 'locker1',
+            lockerNumber: 101,
+            location: '図書館1階'
+          },
+          extensions: [],
         },
       ])
       mockPrisma.session.count.mockResolvedValue(1)
@@ -369,7 +390,23 @@ describe('/api/sessions', () => {
           userId: mockUser.id,
           status: 'ACTIVE',
         },
-        include: { locker: true },
+        include: { 
+          locker: {
+            select: {
+              id: true,
+              lockerNumber: true,
+              location: true
+            }
+          },
+          extensions: {
+            select: {
+              id: true,
+              extendedBy: true,
+              reason: true,
+              timestamp: true
+            }
+          }
+        },
         orderBy: { startTime: 'desc' },
         skip: 0,
         take: 5,
@@ -386,8 +423,8 @@ describe('/api/sessions', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(data.data.sessions).toHaveLength(0)
-      expect(data.data.pagination.total).toBe(0)
+      expect(data.data).toHaveLength(0)
+      expect(data.metadata.pagination.total).toBe(0)
     })
 
     it('無効なページネーション', async () => {
