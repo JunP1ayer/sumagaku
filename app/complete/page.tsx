@@ -34,6 +34,8 @@ export default function CompletePage(): JSX.Element {
   const { isDailyPassValid, startSession, lockers } = useAppStore()
   const [mounted, setMounted] = useState<boolean>(false)
   const [studyTime, setStudyTime] = useState<number>(0)
+  const [sessionStats, setSessionStats] = useState<any>(null)
+  const [totalStats, setTotalStats] = useState<any>(null)
 
   const handleQuickStart = (minutes: number): void => {
     const availableLocker = lockers.find(l => l.isAvailable)
@@ -47,6 +49,44 @@ export default function CompletePage(): JSX.Element {
 
   useEffect(() => {
     setMounted(true)
+    loadStudyStats()
+  }, [])
+
+  const loadStudyStats = async () => {
+    try {
+      // セッション履歴を取得
+      const sessionsResponse = await fetch('/api/sessions')
+      if (sessionsResponse.ok) {
+        const sessionsData = await sessionsResponse.json()
+        const completedSessions = sessionsData.data.filter((s: any) => s.status === 'COMPLETED')
+        
+        // 今日の学習時間計算
+        const today = new Date().toISOString().split('T')[0]
+        const todaySessions = completedSessions.filter((s: any) => 
+          s.startTime.split('T')[0] === today
+        )
+        const todayTime = todaySessions.reduce((total: number, s: any) => 
+          total + (s.actualDuration || 0), 0
+        )
+        
+        // 総学習時間計算
+        const totalTime = completedSessions.reduce((total: number, s: any) => 
+          total + (s.actualDuration || 0), 0
+        )
+        
+        setSessionStats({
+          todayTime,
+          totalTime,
+          totalSessions: completedSessions.length,
+          todaySessions: todaySessions.length
+        })
+      }
+    } catch (error) {
+      console.error('Error loading study stats:', error)
+    }
+  }
+
+  useEffect(() => {
     
     // 学習時間を取得（デモ用にランダム生成）
     const randomMinutes = Math.floor(Math.random() * 60) + 30
@@ -127,7 +167,61 @@ export default function CompletePage(): JSX.Element {
 
             {/* よく使われる時間のクイックアクション */}
             {isPassValid && (
-              <Zoom in={mounted} timeout={1200}>
+              <>
+                {/* 学習統計セクション */}
+                {sessionStats && (
+                <Zoom in={mounted} timeout={800}>
+                  <Box sx={{ mb: 4 }}>
+                    <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'text.primary' }}>
+                      📊 あなたの学習記録
+                    </Typography>
+                    <Grid container spacing={2} justifyContent="center">
+                      <Grid item xs={6} sm={3}>
+                        <Card sx={{ textAlign: 'center', p: 2 }}>
+                          <Typography variant="h4" color="primary.main" sx={{ fontWeight: 700 }}>
+                            {Math.floor(sessionStats.todayTime / 60)}h {sessionStats.todayTime % 60}m
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            今日の学習時間
+                          </Typography>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Card sx={{ textAlign: 'center', p: 2 }}>
+                          <Typography variant="h4" color="success.main" sx={{ fontWeight: 700 }}>
+                            {sessionStats.todaySessions}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            今日のセッション
+                          </Typography>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Card sx={{ textAlign: 'center', p: 2 }}>
+                          <Typography variant="h4" color="warning.main" sx={{ fontWeight: 700 }}>
+                            {Math.floor(sessionStats.totalTime / 60)}h
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            総学習時間
+                          </Typography>
+                        </Card>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Card sx={{ textAlign: 'center', p: 2 }}>
+                          <Typography variant="h4" color="info.main" sx={{ fontWeight: 700 }}>
+                            {sessionStats.totalSessions}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            総セッション数
+                          </Typography>
+                        </Card>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Zoom>
+                )}
+
+                <Zoom in={mounted} timeout={1200}>
                 <Box sx={{ mb: 4 }}>
                   <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: 'text.primary' }}>
                     もう一度利用しますか？
@@ -169,7 +263,8 @@ export default function CompletePage(): JSX.Element {
                     ))}
                   </Grid>
                 </Box>
-              </Zoom>
+                </Zoom>
+              </>
             )}
 
             {/* メインアクションボタン */}
