@@ -12,7 +12,9 @@ import {
   Zoom,
   Paper,
   Chip,
-  Slider
+  Slider,
+  Snackbar,
+  Alert
 } from '@mui/material'
 import { 
   LockOpenOutlined,
@@ -47,6 +49,9 @@ export default function DashboardPage(): JSX.Element {
   const [showTimerDialog, setShowTimerDialog] = useState<boolean>(false)
   const [hours, setHours] = useState<number>(1)
   const [minutes, setMinutes] = useState<number>(0)
+  const [snackbar, setSnackbar] = useState<{open: boolean, message: string, severity: 'error' | 'success' | 'warning'}>({
+    open: false, message: '', severity: 'error'
+  })
 
   useEffect(() => {
     setMounted(true)
@@ -89,7 +94,7 @@ export default function DashboardPage(): JSX.Element {
   const handleStartSession = (): void => {
     const totalMinutes = hours * 60 + minutes
     if (totalMinutes < 5) {
-      alert('最低5分以上に設定してください')
+      setSnackbar({open: true, message: '最低5分以上に設定してください', severity: 'warning'})
       return
     }
     
@@ -422,6 +427,22 @@ export default function DashboardPage(): JSX.Element {
           </Fade>
         )}
       </Container>
+
+      {/* Snackbar for error messages */}
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={4000} 
+        onClose={() => setSnackbar({...snackbar, open: false})}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({...snackbar, open: false})} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
