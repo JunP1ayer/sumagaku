@@ -51,13 +51,39 @@ export default function PreparationPage(): JSX.Element {
       // 時間切れ後に集中モードへ
       if (remaining <= 0) {
         clearInterval(timer)
-        startSessionFromPreparation()
-        router.push('/session')
+        handleStartSession()
       }
     }, 1000)
 
     return () => clearInterval(timer)
   }, [preparationTime.isActive, updatePreparationTimer, startSessionFromPreparation, router])
+
+  const handleStartSession = async () => {
+    try {
+      // セッション状態をACTIVEに更新
+      const response = await fetch(`/api/sessions/${preparationTime.lockerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'ACTIVE',
+          startTime: new Date().toISOString()
+        }),
+      })
+      
+      if (response.ok) {
+        startSessionFromPreparation()
+        router.push('/session')
+      } else {
+        console.error('Failed to start session')
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Error starting session:', error)
+      router.push('/dashboard')
+    }
+  }
 
   const handleCancel = () => {
     // 準備時間をキャンセルして戻る
