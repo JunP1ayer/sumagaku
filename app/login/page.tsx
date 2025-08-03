@@ -80,15 +80,22 @@ export default function LoginPage(): JSX.Element {
     }
 
     if (isLoginMode) {
-      // ログインモード - メールアドレスのみでログイン
-      // パスワードは不要（まだ実装していないため）
+      // ログインモード
+      if (!password.trim()) {
+        setError('パスワードを入力してください')
+        return
+      }
     } else {
       // 新規登録モード
       if (!name.trim()) {
         setError('お名前を入力してください')
         return
       }
-      if (password && password.length < 6) {
+      if (!password.trim()) {
+        setError('パスワードを入力してください')
+        return
+      }
+      if (password.length < 6) {
         setError('パスワードは6文字以上で設定してください')
         return
       }
@@ -100,8 +107,8 @@ export default function LoginPage(): JSX.Element {
       // APIエンドポイントを切り替え
       const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register'
       const body = isLoginMode 
-        ? { email, password: password || 'temp-password' } // ログイン時：メールアドレスのみで認証
-        : { email, name: name.trim(), password: password || 'temp-password' } // 新規登録時：パスワードは任意
+        ? { email, password } // ログイン時：メールアドレスとパスワード
+        : { email, name: name.trim(), password } // 新規登録時：名前、メールアドレス、パスワード
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -194,7 +201,7 @@ export default function LoginPage(): JSX.Element {
               </Typography>
               
               <Typography variant="body1" color="text.secondary">
-                {isLoginMode ? 'メールアドレスとパスワードでログイン' : 'お名前とメールアドレスで新規登録'}
+                {isLoginMode ? 'メールアドレスとパスワードでログイン' : 'お名前、メールアドレス、パスワードで新規登録'}
               </Typography>
             </Box>
 
@@ -334,10 +341,10 @@ export default function LoginPage(): JSX.Element {
                   </Typography>
                 </Box>
 
-                {/* パスワード入力（新規登録時は任意） */}
+                {/* パスワード入力（必須） */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    パスワード {!isLoginMode && <Typography component="span" variant="body2" color="text.secondary">（任意）</Typography>}
+                    パスワード
                   </Typography>
                   
                   <TextField
@@ -346,7 +353,7 @@ export default function LoginPage(): JSX.Element {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={isLoginMode ? "※現在メールアドレスのみで認証できます" : "パスワードを設定（6文字以上）"}
+                    placeholder={isLoginMode ? "パスワードを入力" : "パスワードを設定（6文字以上）"}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -362,13 +369,11 @@ export default function LoginPage(): JSX.Element {
                         },
                       }
                     }}
-                    disabled={loading || isLoginMode} // ログイン時は無効化
+                    disabled={loading}
                   />
-                  {isLoginMode && (
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      ※ パスワード認証は現在準備中です。メールアドレスのみでログインできます。
-                    </Typography>
-                  )}
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                    {isLoginMode ? '登録時に設定したパスワードを入力してください' : '6文字以上で設定してください'}
+                  </Typography>
                 </Box>
 
                 {error && (
