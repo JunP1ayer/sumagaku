@@ -113,12 +113,6 @@ export default function SessionPage(): JSX.Element {
     ? ((currentSession.duration * 60 - currentSession.timeRemaining) / (currentSession.duration * 60)) * 100
     : 0
 
-  const handleEmergencyUnlock = (): void => {
-    if (confirm('本当にロッカーを解除しますか？\n集中時間が終了します。')) {
-      endSession()
-      router.push('/dashboard')
-    }
-  }
 
   return (
     <Box sx={{ 
