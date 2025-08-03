@@ -45,12 +45,56 @@ export default function SessionPage(): JSX.Element {
       const state = useAppStore.getState()
       if (state.currentSession.timeRemaining <= 0) {
         clearInterval(timer)
-        router.push('/complete')
+        handleSessionComplete()
       }
     }, 1000)
 
     return () => clearInterval(timer)
   }, [currentSession.isActive, updateTimer, router])
+
+  const handleSessionComplete = async () => {
+    try {
+      // セッション終了APIを呼び出し
+      const response = await fetch(`/api/sessions/${currentSession.lockerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'COMPLETED',
+          endTime: new Date().toISOString(),
+          actualDuration: Math.floor((currentSession.duration || 0) * 60 - currentSession.timeRemaining / 60)
+        }),
+      })
+      
+      if (response.ok) {
+        // ロッカー解錠処理
+        const unlockResponse = await fetch(`/api/lockers/${currentSession.lockerId}/control`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'unlock'
+          }),
+        })
+        
+        // ローカル状態更新
+        endSession()
+        router.push('/complete')
+      } else {
+        console.error('Failed to complete session')
+      }
+    } catch (error) {
+      console.error('Error completing session:', error)
+    }
+  }
+
+  const handleEmergencyUnlock = async () => {
+    if (confirm('緊急解除しますか？学習記録は保存されません。')) {
+      await handleSessionComplete()
+    }
+  }
 
   if (!currentSession.isActive) return <div>Session not active</div>
 
