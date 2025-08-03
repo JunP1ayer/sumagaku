@@ -83,19 +83,43 @@ export default function LoginPage(): JSX.Element {
 
     setLoading(true)
     
-    // デモ用の認証処理（実際にはサーバーサイド認証）
-    setTimeout(() => {
+    try {
+      // 実際のAPI認証処理
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          name: name.trim(),
+          password: 'temp-password' // 一時的なパスワード（後でSSO連携時に改善）
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        setError(data.error?.message || 'ログインに失敗しました')
+        setLoading(false)
+        return
+      }
+      
       const user: User = {
-        email,
-        name: name.trim(),
-        studentId: 'demo-' + Math.random().toString(36).substr(2, 9),
+        email: data.data.email,
+        name: data.data.name,
+        studentId: data.data.studentId || 'temp-' + Math.random().toString(36).substr(2, 6),
         loginTime: new Date().toISOString()
       }
       
       setUser(user)
       setLoading(false)
       router.push('/dashboard')
-    }, 1500)
+      
+    } catch (error) {
+      setError('サーバーエラーが発生しました')
+      setLoading(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent): void => {
