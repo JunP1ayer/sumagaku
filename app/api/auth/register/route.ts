@@ -100,6 +100,7 @@ const registerHandler = async (request: NextRequest) => {
     }, 201)
     
   } catch (error) {
+    console.error('Register API Error:', error)
     return handleApiError(error)
   }
 }
