@@ -122,14 +122,17 @@ export const errorResponse = (
     }
   }
   
-  // Log error for monitoring
-  console.error(`API Error [${error.code}]:`, {
-    message: error.message,
-    statusCode: error.statusCode,
-    details: error.details,
-    requestId,
-    timestamp: response.metadata?.timestamp
-  })
+  // Log error for monitoring (development only for console output)
+  if (process.env.NODE_ENV === 'development') {
+    console.error(`API Error [${error.code}]:`, {
+      message: error.message,
+      statusCode: error.statusCode,
+      details: error.details,
+      requestId,
+      timestamp: response.metadata?.timestamp
+    })
+  }
+  // TODO: In production, send to monitoring service (Sentry, etc.)
   
   return NextResponse.json(response, { status: error.statusCode })
 }
