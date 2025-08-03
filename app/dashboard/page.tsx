@@ -163,7 +163,7 @@ export default function DashboardPage(): JSX.Element {
       
     } catch (error) {
       console.error('Session start error:', error)
-      setSnackbar({open: true, message: 'サーバーエラーが発生しました', severity: 'error'})
+      setSnackbar({open: true, message: `エラーが発生しました: ${error instanceof Error ? error.message : 'サーバーエラー'}`, severity: 'error'})
     }
   }
 
@@ -358,42 +358,45 @@ export default function DashboardPage(): JSX.Element {
                 flexGrow: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
+                justifyContent: 'flex-start',
                 maxWidth: 400,
                 mx: 'auto',
-                width: '100%'
+                width: '100%',
+                height: '100%',
+                overflow: 'auto',
+                py: 2
               }}>
                 {/* タイマー表示 */}
                 <Box sx={{
                   textAlign: 'center',
-                  mb: 4,
-                  p: 3,
+                  mb: 2,
+                  p: 2,
                   backgroundColor: 'grey.50',
-                  borderRadius: 3
+                  borderRadius: 2
                 }}>
                   <Typography 
-                    variant="h1" 
+                    variant="h2" 
                     sx={{ 
                       fontFamily: 'monospace',
                       fontWeight: 200,
                       color: 'primary.main',
-                      fontSize: { xs: '3rem', sm: '4rem' },
-                      mb: 1,
+                      fontSize: { xs: '2rem', sm: '2.5rem' },
+                      mb: 0.5,
                       letterSpacing: '0.1em'
                     }}
                   >
                     {formatTime(hours, minutes)}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary">
                     合計 {totalMinutes}分
                   </Typography>
                 </Box>
 
                 {/* 時間選択 */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 2 }}>
                   {/* 時間スライダー */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
                       時間: {hours}時間
                     </Typography>
                     <Slider
@@ -404,22 +407,19 @@ export default function DashboardPage(): JSX.Element {
                       step={1}
                       marks={[
                         { value: 0, label: '0h' },
-                        { value: 2, label: '2h' },
                         { value: 4, label: '4h' },
-                        { value: 6, label: '6h' },
                         { value: 8, label: '8h' }
                       ]}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          width: 24,
-                          height: 24,
+                          width: 20,
+                          height: 20,
                         },
                         '& .MuiSlider-track': {
-                          height: 6,
+                          height: 4,
                         },
                         '& .MuiSlider-rail': {
-                          height: 6,
-                          opacity: 0.3,
+                          height: 4,
                         }
                       }}
                     />
@@ -427,7 +427,7 @@ export default function DashboardPage(): JSX.Element {
 
                   {/* 分スライダー */}
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
                       分: {minutes}分
                     </Typography>
                     <Slider
@@ -438,21 +438,18 @@ export default function DashboardPage(): JSX.Element {
                       step={5}
                       marks={[
                         { value: 0, label: '0' },
-                        { value: 15, label: '15' },
-                        { value: 30, label: '30' },
-                        { value: 45, label: '45' }
+                        { value: 30, label: '30' }
                       ]}
                       sx={{
                         '& .MuiSlider-thumb': {
-                          width: 24,
-                          height: 24,
+                          width: 20,
+                          height: 20,
                         },
                         '& .MuiSlider-track': {
-                          height: 6,
+                          height: 4,
                         },
                         '& .MuiSlider-rail': {
-                          height: 6,
-                          opacity: 0.3,
+                          height: 4,
                         }
                       }}
                     />
@@ -460,8 +457,8 @@ export default function DashboardPage(): JSX.Element {
                 </Box>
 
                 {/* 解錠コード設定 */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
                     解錠コード (4-6桁の数字)
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -472,31 +469,23 @@ export default function DashboardPage(): JSX.Element {
                       placeholder="例: 1234"
                       maxLength={6}
                       style={{
-                        fontSize: '1.5rem',
-                        padding: '12px 16px',
+                        fontSize: '1.2rem',
+                        padding: '8px 12px',
                         textAlign: 'center',
                         border: '2px solid #e0e0e0',
-                        borderRadius: '8px',
-                        width: '140px',
+                        borderRadius: '6px',
+                        width: '120px',
                         fontFamily: 'monospace',
-                        letterSpacing: '0.2em'
+                        letterSpacing: '0.1em'
                       }}
                     />
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mt: 1 }}>
-                    覚えやすい数字を設定してください
-                  </Typography>
                 </Box>
                 
                 {/* エラーメッセージ */}
-                {totalMinutes < 5 && (
-                  <Typography variant="body2" color="error" sx={{ textAlign: 'center', mb: 1 }}>
-                    最低5分以上に設定してください
-                  </Typography>
-                )}
-                {unlockCode && (unlockCode.length < 4 || unlockCode.length > 6 || !/^\d+$/.test(unlockCode)) && (
-                  <Typography variant="body2" color="error" sx={{ textAlign: 'center', mb: 1 }}>
-                    解錠コードは4-6桁の数字で入力してください
+                {(totalMinutes < 5 || (unlockCode && (unlockCode.length < 4 || unlockCode.length > 6 || !/^\d+$/.test(unlockCode)))) && (
+                  <Typography variant="caption" color="error" sx={{ textAlign: 'center', display: 'block', mb: 1 }}>
+                    {totalMinutes < 5 ? '最低5分以上に設定してください' : '解錠コードは4-6桁の数字で入力してください'}
                   </Typography>
                 )}
                 
@@ -508,11 +497,11 @@ export default function DashboardPage(): JSX.Element {
                   fullWidth
                   disabled={totalMinutes < 5 || !unlockCode || unlockCode.length < 4 || unlockCode.length > 6 || !/^\d+$/.test(unlockCode)}
                   sx={{
-                    py: 2,
-                    fontSize: '1.2rem',
+                    py: 1.5,
+                    fontSize: '1.1rem',
                     fontWeight: 600,
                     borderRadius: 2,
-                    mt: 2
+                    mt: 1
                   }}
                 >
                   集中モード開始 ({totalMinutes}分)
