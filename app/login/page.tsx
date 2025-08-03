@@ -44,10 +44,12 @@ export default function LoginPage(): JSX.Element {
   const { setUser } = useAppStore()
   const [email, setEmail] = useState<string>('')
   const [name, setName] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [mounted, setMounted] = useState<boolean>(false)
   const [showGuide, setShowGuide] = useState<boolean>(false)
+  const [isLoginMode, setIsLoginMode] = useState<boolean>(false)
 
   useEffect(() => {
     setMounted(true)
@@ -66,11 +68,6 @@ export default function LoginPage(): JSX.Element {
   const handleLogin = async (): Promise<void> => {
     setError('')
     
-    if (!name.trim()) {
-      setError('お名前を入力してください')
-      return
-    }
-    
     if (!email) {
       setError('メールアドレスを入力してください')
       return
@@ -81,34 +78,54 @@ export default function LoginPage(): JSX.Element {
       return
     }
 
+    if (isLoginMode) {
+      // ログインモード
+      if (!password.trim()) {
+        setError('パスワードを入力してください')
+        return
+      }
+    } else {
+      // 新規登録モード
+      if (!name.trim()) {
+        setError('お名前を入力してください')
+        return
+      }
+    }
+
     setLoading(true)
     
     try {
-      // 実際のAPI認証処理
-      const response = await fetch('/api/auth/register', {
+      // APIエンドポイントを切り替え
+      const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register'
+      const body = isLoginMode 
+        ? { email, password }
+        : { email, name: name.trim(), password: 'temp-password' }
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email,
-          name: name.trim(),
-          password: 'temp-password' // 一時的なパスワード（後でSSO連携時に改善）
-        }),
+        body: JSON.stringify(body),
       })
       
       const data = await response.json()
       
       if (!response.ok) {
-        setError(data.error?.message || 'ログインに失敗しました')
+        setError(data.error?.message || (isLoginMode ? 'ログインに失敗しました' : '登録に失敗しました'))
         setLoading(false)
         return
       }
       
+      // トークンを保存
+      if (data.data?.token) {
+        localStorage.setItem('token', data.data.token)
+      }
+      
       const user: User = {
-        email: data.data.email,
-        name: data.data.name,
-        studentId: data.data.studentId || 'temp-' + Math.random().toString(36).substr(2, 6),
+        email: data.data.user?.email || data.data.email,
+        name: data.data.user?.name || data.data.name,
+        studentId: data.data.user?.studentId || data.data.studentId || 'temp-' + Math.random().toString(36).substr(2, 6),
         loginTime: new Date().toISOString()
       }
       
@@ -171,11 +188,11 @@ export default function LoginPage(): JSX.Element {
                 WebkitTextFillColor: 'transparent',
                 mb: 1
               }}>
-                ログイン
+                {isLoginMode ? 'ログイン' : '新規登録'}
               </Typography>
               
               <Typography variant="body1" color="text.secondary">
-                お名前とメールアドレスでログイン
+                {isLoginMode ? 'メールアドレスとパスワードでログイン' : 'お名前とメールアドレスで新規登録'}
               </Typography>
             </Box>
 
@@ -186,37 +203,39 @@ export default function LoginPage(): JSX.Element {
               border: '1px solid rgba(15, 122, 96, 0.1)'
             }}>
               <CardContent sx={{ p: 4 }}>
-                {/* 名前入力 */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    お名前
-                  </Typography>
-                  
-                  <TextField
-                    fullWidth
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="山田太郎"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonOutlined color="primary" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        '&:hover fieldset': {
-                          borderColor: 'primary.main',
-                        },
-                      }
-                    }}
-                    disabled={loading}
-                  />
-                </Box>
+                {/* 名前入力（新規登録時のみ） */}
+                {!isLoginMode && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                      お名前
+                    </Typography>
+                    
+                    <TextField
+                      fullWidth
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="山田太郎"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonOutlined color="primary" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          '&:hover fieldset': {
+                            borderColor: 'primary.main',
+                          },
+                        }
+                      }}
+                      disabled={loading}
+                    />
+                  </Box>
+                )}
 
                 {/* メールアドレス入力 */}
                 <Box sx={{ mb: 3 }}>
@@ -254,6 +273,40 @@ export default function LoginPage(): JSX.Element {
                   </Typography>
                 </Box>
 
+                {/* パスワード入力（ログイン時のみ） */}
+                {isLoginMode && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                      パスワード
+                    </Typography>
+                    
+                    <TextField
+                      fullWidth
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="パスワードを入力"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockOutlined color="primary" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          '&:hover fieldset': {
+                            borderColor: 'primary.main',
+                          },
+                        }
+                      }}
+                      disabled={loading}
+                    />
+                  </Box>
+                )}
+
                 {error && (
                   <Alert severity="error" sx={{ mb: 3, whiteSpace: 'pre-line' }}>
                     {error}
@@ -284,10 +337,39 @@ export default function LoginPage(): JSX.Element {
                     }
                   }}
                 >
-                  {loading ? '認証中...' : 'ログイン'}
+                  {loading ? '認証中...' : (isLoginMode ? 'ログイン' : '新規登録')}
                 </Button>
 
-                <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    または
+                  </Typography>
+                </Divider>
+
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => {
+                    setIsLoginMode(!isLoginMode)
+                    setError('')
+                    setPassword('')
+                  }}
+                  disabled={loading}
+                  sx={{
+                    py: 1.5,
+                    mb: 2,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderWidth: 2,
+                    '&:hover': {
+                      borderWidth: 2,
+                      backgroundColor: 'rgba(15, 122, 96, 0.05)',
+                    }
+                  }}
+                >
+                  {isLoginMode ? '新規登録はこちら' : '既にアカウントをお持ちの方'}
+                </Button>
 
                 <Button
                   variant="text"
