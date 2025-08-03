@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
   Container,
@@ -22,7 +22,7 @@ import {
 
 type VerificationStatus = 'loading' | 'success' | 'error' | 'expired' | 'invalid'
 
-export default function VerifyEmailPage(): JSX.Element {
+function VerifyEmailPageContent(): JSX.Element {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<VerificationStatus>('loading')
@@ -280,5 +280,13 @@ export default function VerifyEmailPage(): JSX.Element {
         </Fade>
       </Container>
     </Box>
+  )
+}
+
+export default function VerifyEmailPage(): JSX.Element {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyEmailPageContent />
+    </Suspense>
   )
 }

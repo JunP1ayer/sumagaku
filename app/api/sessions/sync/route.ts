@@ -128,3 +128,6 @@ const syncSessionStateHandler = async (request: AuthenticatedRequest) => {
 export const GET = withAuthenticatedApi(
   withAuditLog('SYNC_SESSION_STATE')(syncSessionStateHandler)
 )
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'

@@ -116,3 +116,6 @@ const getSessionTimerStatusHandler = async (request: AuthenticatedRequest) => {
 export const GET = withAuthenticatedApi(
   withAuditLog('GET_SESSION_TIMER_STATUS')(getSessionTimerStatusHandler)
 )
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'

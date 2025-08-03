@@ -137,3 +137,6 @@ const getLockerStatsHandler = async (request: AuthenticatedRequest) => {
 export const GET = withAdminApi(
   withAuditLog('GET_LOCKER_STATS')(getLockerStatsHandler)
 )
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'

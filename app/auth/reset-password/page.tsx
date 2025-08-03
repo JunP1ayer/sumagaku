@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
   Container,
@@ -23,7 +23,7 @@ import {
   ArrowBackOutlined
 } from '@mui/icons-material'
 
-export default function ResetPasswordPage(): JSX.Element {
+function ResetPasswordPageContent(): JSX.Element {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [mounted, setMounted] = useState<boolean>(false)
@@ -361,5 +361,13 @@ export default function ResetPasswordPage(): JSX.Element {
         </Fade>
       </Container>
     </Box>
+  )
+}
+
+export default function ResetPasswordPage(): JSX.Element {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordPageContent />
+    </Suspense>
   )
 }
