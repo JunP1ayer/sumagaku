@@ -337,15 +337,17 @@ export default function DashboardPage(): JSX.Element {
               zIndex: 1300,
               display: 'flex',
               flexDirection: 'column',
-              p: 3
+              p: { xs: 2, sm: 3 },
+              overflow: 'hidden'
             }}>
               {/* ヘッダー */}
               <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 3,
-                pt: 1
+                mb: 2,
+                pt: { xs: 0.5, sm: 1 },
+                flexShrink: 0
               }}>
                 <TimerOutlined sx={{ color: 'primary.main', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -358,22 +360,20 @@ export default function DashboardPage(): JSX.Element {
 
               {/* メインコンテンツ */}
               <Box sx={{
-                flexGrow: 1,
+                flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'flex-start',
+                justifyContent: 'center',
                 maxWidth: 400,
                 mx: 'auto',
                 width: '100%',
-                height: '100%',
-                overflow: 'auto',
-                py: 2
+                minHeight: 0
               }}>
                 {/* タイマー表示 */}
                 <Box sx={{
                   textAlign: 'center',
-                  mb: 2,
-                  p: 2,
+                  mb: 1.5,
+                  p: 1.5,
                   backgroundColor: 'grey.50',
                   borderRadius: 2
                 }}>
@@ -396,9 +396,9 @@ export default function DashboardPage(): JSX.Element {
                 </Box>
 
                 {/* 時間選択 */}
-                <Box sx={{ mb: 2 }}>
+                <Box sx={{ mb: 1.5 }}>
                   {/* 時間スライダー */}
-                  <Box sx={{ mb: 2 }}>
+                  <Box sx={{ mb: 1.5 }}>
                     <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
                       時間: {hours}時間
                     </Typography>
@@ -434,7 +434,7 @@ export default function DashboardPage(): JSX.Element {
                   </Box>
 
                   {/* 分スライダー */}
-                  <Box sx={{ mb: 2 }}>
+                  <Box sx={{ mb: 1.5 }}>
                     <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
                       分: {minutes}分
                     </Typography>
@@ -465,8 +465,8 @@ export default function DashboardPage(): JSX.Element {
                 </Box>
 
                 {/* 解錠コード設定 */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" sx={{ mb: 1.5, fontWeight: 600, textAlign: 'center' }}>
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
                     解錠コード (4-6桁の数字)
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -515,7 +515,7 @@ export default function DashboardPage(): JSX.Element {
                       }}
                     />
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mt: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block', mt: 0.5, fontSize: '0.7rem' }}>
                     覚えやすい数字を入力してください
                   </Typography>
                 </Box>
@@ -539,7 +539,7 @@ export default function DashboardPage(): JSX.Element {
                     fontSize: '1.1rem',
                     fontWeight: 600,
                     borderRadius: 2,
-                    mt: 1
+                    mt: 0.5
                   }}
                 >
                   集中モード開始 ({totalMinutes}分)
