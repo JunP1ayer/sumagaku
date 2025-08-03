@@ -8,28 +8,30 @@ import { POST, GET } from '@/app/api/sessions/route'
 import { prisma } from '@/lib/prisma'
 
 // Mock prisma
-jest.mock('@/lib/prisma')
-const mockPrisma = prisma as any
-
-describe('/api/sessions', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
-    
-    // Reset prisma mocks
-    mockPrisma.dailyPass = {
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    dailyPass: {
       findFirst: jest.fn(),
-    }
-    mockPrisma.session = {
+    },
+    session: {
       findFirst: jest.fn(),
       findMany: jest.fn(),
       create: jest.fn(),
       count: jest.fn(),
-    }
-    mockPrisma.locker = {
+    },
+    locker: {
       findUnique: jest.fn(),
       update: jest.fn(),
-    }
-    mockPrisma.$transaction = jest.fn()
+    },
+    $transaction: jest.fn(),
+  },
+}))
+
+const mockPrisma = require('@/lib/prisma').prisma
+
+describe('/api/sessions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
   })
 
   describe('POST /api/sessions - Create Session', () => {

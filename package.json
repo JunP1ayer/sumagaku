@@ -9,10 +9,10 @@
     "start": "next start",
     "type-check": "tsc --noEmit",
     "lint": "next lint",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false"
+    "test": "jest --maxWorkers=1",
+    "test:watch": "jest --watch --maxWorkers=1",
+    "test:coverage": "jest --coverage --maxWorkers=1",
+    "test:ci": "jest --ci --coverage --watchAll=false --maxWorkers=1"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -45,7 +45,8 @@
     "@types/prop-types": "^15.7.15",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.13",
-    "jest": "^30.0.5"
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1"
   },
   "engines": {
     "node": ">=18.17.0"
