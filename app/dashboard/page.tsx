@@ -111,11 +111,16 @@ export default function DashboardPage(): JSX.Element {
     
     try {
       // 利用可能なロッカーを取得
-      const lockersResponse = await fetch('/api/lockers')
+      const lockersResponse = await fetch('/api/lockers', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
       const lockersData = await lockersResponse.json()
       
       if (!lockersResponse.ok) {
-        setSnackbar({open: true, message: 'ロッカー情報の取得に失敗しました', severity: 'error'})
+        console.error('Lockers fetch failed:', lockersData)
+        setSnackbar({open: true, message: lockersData.error?.message || 'ロッカー情報の取得に失敗しました', severity: 'error'})
         return
       }
       
@@ -130,6 +135,7 @@ export default function DashboardPage(): JSX.Element {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           lockerId: availableLocker.id,
@@ -141,6 +147,7 @@ export default function DashboardPage(): JSX.Element {
       const sessionData = await sessionResponse.json()
       
       if (!sessionResponse.ok) {
+        console.error('Session creation failed:', sessionData)
         setSnackbar({open: true, message: sessionData.error?.message || 'セッション開始に失敗しました', severity: 'error'})
         return
       }
@@ -155,6 +162,7 @@ export default function DashboardPage(): JSX.Element {
       router.push('/memo-code')
       
     } catch (error) {
+      console.error('Session start error:', error)
       setSnackbar({open: true, message: 'サーバーエラーが発生しました', severity: 'error'})
     }
   }
