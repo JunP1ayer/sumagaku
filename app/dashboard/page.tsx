@@ -91,18 +91,56 @@ export default function DashboardPage(): JSX.Element {
     }
   }
 
-  const handleStartSession = (): void => {
+  const handleStartSession = async (): Promise<void> => {
     const totalMinutes = hours * 60 + minutes
     if (totalMinutes < 5) {
       setSnackbar({open: true, message: '最低5分以上に設定してください', severity: 'warning'})
       return
     }
     
-    const availableLocker = lockers.find(l => l.isAvailable)
-    if (availableLocker) {
+    try {
+      // 利用可能なロッカーを取得
+      const lockersResponse = await fetch('/api/lockers')
+      const lockersData = await lockersResponse.json()
+      
+      if (!lockersResponse.ok) {
+        setSnackbar({open: true, message: 'ロッカー情報の取得に失敗しました', severity: 'error'})
+        return
+      }
+      
+      const availableLocker = lockersData.data.find((l: any) => l.isAvailable)
+      if (!availableLocker) {
+        setSnackbar({open: true, message: '利用可能なロッカーがありません', severity: 'warning'})
+        return
+      }
+      
+      // セッションを作成
+      const sessionResponse = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lockerId: availableLocker.id,
+          plannedDuration: totalMinutes
+        }),
+      })
+      
+      const sessionData = await sessionResponse.json()
+      
+      if (!sessionResponse.ok) {
+        setSnackbar({open: true, message: sessionData.error?.message || 'セッション開始に失敗しました', severity: 'error'})
+        return
+      }
+      
+      // ローカル状態更新
       startPreparation(availableLocker.id, totalMinutes)
       setShowTimerDialog(false)
+      setSnackbar({open: true, message: `ロッカー${availableLocker.location}を予約しました`, severity: 'success'})
       router.push('/preparation')
+      
+    } catch (error) {
+      setSnackbar({open: true, message: 'サーバーエラーが発生しました', severity: 'error'})
     }
   }
 
