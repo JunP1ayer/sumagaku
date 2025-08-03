@@ -51,7 +51,6 @@ export const loginSchema = z.object({
 // ================== Session Validations ==================
 
 export const createSessionSchema = z.object({
-  userId: z.string().cuid(),
   lockerId: z.string().cuid(),
   plannedDuration: z
     .number()
@@ -76,7 +75,6 @@ export const extendSessionSchema = z.object({
 // ================== Payment Validations ==================
 
 export const createPaymentSchema = z.object({
-  userId: z.string().cuid(),
   amount: z
     .number()
     .int()

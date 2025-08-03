@@ -8,8 +8,30 @@ import { POST, PUT } from '@/app/api/payments/route'
 import { prisma } from '@/lib/prisma'
 
 // Mock prisma
-jest.mock('@/lib/prisma')
-const mockPrisma = prisma as any
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    dailyPass: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
+    payment: {
+      findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
+    },
+    auditLog: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  },
+}))
+
+const mockPrisma = require('@/lib/prisma').prisma
 
 // Mock crypto
 jest.mock('crypto', () => ({
@@ -32,24 +54,11 @@ jest.mock('nodemailer', () => ({
 describe('/api/payments', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    
-    // Reset prisma mocks
-    mockPrisma.dailyPass = {
-      findFirst: jest.fn(),
-      create: jest.fn(),
-    }
-    mockPrisma.payment = {
-      findFirst: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    }
-    mockPrisma.$transaction = jest.fn()
   })
 
   describe('POST /api/payments - Create Payment', () => {
     const mockUser = {
-      id: 'user123',
+      id: 'test-user-123',
       email: 'test@student.nagoya-u.ac.jp',
       name: 'Test User',
     }
@@ -74,15 +83,20 @@ describe('/api/payments', () => {
       // Setup mocks
       mockPrisma.dailyPass.findFirst.mockResolvedValue(null) // No existing pass
       mockPrisma.payment.findFirst.mockResolvedValue(null) // No pending payment
-      mockPrisma.payment.create.mockResolvedValue({
-        id: 'payment123',
-        userId: mockUser.id,
+      
+      // Mock payment creation
+      const mockPayment = {
+        id: 'cm3x8b9k0000123payment456',
+        userId: 'test-user-123',
         amount: 500,
         status: 'PENDING',
-        paypayOrderId: 'sumagaku_user123_123456_mockedid123',
-      })
+        paypayOrderId: 'sumagaku_test-user-123_123456_mockedid123',
+        createdAt: new Date(),
+      }
+      
+      mockPrisma.payment.create.mockResolvedValue(mockPayment)
       mockPrisma.payment.update.mockResolvedValue({
-        id: 'payment123',
+        ...mockPayment,
         paypayTxId: 'pp_mockedpaymentid',
       })
 
@@ -98,8 +112,8 @@ describe('/api/payments', () => {
       })
       expect(mockPrisma.payment.create).toHaveBeenCalledWith({
         data: {
-          userId: mockUser.id,
-          paypayOrderId: expect.stringContaining('sumagaku_user123_'),
+          userId: 'test-user-123',
+          paypayOrderId: expect.stringContaining('sumagaku_test-user-123_'),
           amount: 500,
           status: 'PENDING',
         },
@@ -119,7 +133,7 @@ describe('/api/payments', () => {
 
       expect(response.status).toBe(400)
       expect(data.success).toBe(false)
-      expect(data.message).toBe('今日の一日券は既に購入済みです')
+      expect(data.error.message).toBe('今日の一日券は既に購入済みです')
       expect(mockPrisma.payment.create).not.toHaveBeenCalled()
     })
 
@@ -138,7 +152,7 @@ describe('/api/payments', () => {
 
       expect(response.status).toBe(400)
       expect(data.success).toBe(false)
-      expect(data.message).toBe('未完了の決済があります。15分後に再試行してください。')
+      expect(data.error.message).toBe('未完了の決済があります。15分後に再試行してください。')
     })
 
     it('無効な金額でバリデーションエラー', async () => {
@@ -148,7 +162,7 @@ describe('/api/payments', () => {
 
       expect(response.status).toBe(400)
       expect(data.success).toBe(false)
-      expect(data.error).toContain('validation')
+      expect(data.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('認証されていないユーザーはエラー', async () => {
@@ -156,7 +170,7 @@ describe('/api/payments', () => {
       const response = await POST(request)
       const data = await response.json()
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(400)
       expect(data.success).toBe(false)
     })
 
@@ -171,10 +185,15 @@ describe('/api/payments', () => {
         status: 'PENDING',
       })
 
-      // Mock PayPay API failure by setting NODE_ENV to production
+      // Mock PayPay client to throw error
+      const { getPayPayClient } = require('@/lib/paypay-client')
+      getPayPayClient.mockReturnValue({
+        createPayment: jest.fn().mockRejectedValue(new Error('PayPay API Error')),
+      })
+
+      // Set production mode to use PayPay client
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'production'
-      process.env.PAYPAY_API_ENDPOINT = 'http://fake-api.com'
 
       const request = createMockRequest({ amount: 500 })
       const response = await POST(request)
@@ -208,6 +227,12 @@ describe('/api/payments', () => {
     }
 
     it('決済完了のWebhook処理', async () => {
+      // Mock signature verification to pass for this test
+      const { getPayPayClient } = require('@/lib/paypay-client')
+      getPayPayClient.mockReturnValue({
+        verifyWebhookSignature: jest.fn().mockReturnValue(true),
+      })
+
       const webhookBody = {
         merchantPaymentId: 'sumagaku_user123_123456',
         paymentId: 'pp_paymentid123',
@@ -248,6 +273,12 @@ describe('/api/payments', () => {
     })
 
     it('決済失敗のWebhook処理', async () => {
+      // Mock signature verification to pass for this test
+      const { getPayPayClient } = require('@/lib/paypay-client')
+      getPayPayClient.mockReturnValue({
+        verifyWebhookSignature: jest.fn().mockReturnValue(true),
+      })
+
       const webhookBody = {
         merchantPaymentId: 'sumagaku_user123_123456',
         paymentId: 'pp_paymentid123',
@@ -285,9 +316,17 @@ describe('/api/payments', () => {
     it('存在しない決済IDでエラー', async () => {
       mockPrisma.payment.findUnique.mockResolvedValue(null)
 
+      // Mock signature verification to pass for this test
+      const { getPayPayClient } = require('@/lib/paypay-client')
+      getPayPayClient.mockReturnValue({
+        verifyWebhookSignature: jest.fn().mockReturnValue(true),
+      })
+
       const webhookBody = {
         merchantPaymentId: 'nonexistent_payment',
+        paymentId: 'pp_test123',
         status: 'COMPLETED',
+        amount: 500,
       }
 
       const request = createWebhookRequest(webhookBody)
@@ -296,20 +335,22 @@ describe('/api/payments', () => {
 
       expect(response.status).toBe(400)
       expect(data.success).toBe(false)
-      expect(data.message).toBe('Payment not found')
+      expect(data.error.message).toBe('Payment not found')
     })
 
     it('無効なWebhook署名でエラー', async () => {
       // Mock signature verification to fail
-      const crypto = require('crypto')
-      crypto.timingSafeEqual.mockReturnValue(false)
+      const { getPayPayClient } = require('@/lib/paypay-client')
+      getPayPayClient.mockReturnValue({
+        verifyWebhookSignature: jest.fn().mockReturnValue(false),
+      })
 
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'production'
       process.env.PAYPAY_API_SECRET = 'test-secret'
 
       const request = createWebhookRequest(
-        { merchantPaymentId: 'test', status: 'COMPLETED' },
+        { merchantPaymentId: 'test', paymentId: 'pp_test', status: 'COMPLETED', amount: 500 },
         'invalid-signature'
       )
       const response = await PUT(request)
@@ -319,13 +360,29 @@ describe('/api/payments', () => {
 
       expect(response.status).toBe(400)
       expect(data.success).toBe(false)
-      expect(data.message).toBe('Invalid webhook signature')
+      expect(data.error.message).toBe('Invalid webhook signature')
     })
   })
 
   describe('Helper Functions', () => {
     it('PayPay Order ID生成の一意性', async () => {
       const mockUser = { id: 'user123', email: 'test@example.com', name: 'Test' }
+      
+      const createMockRequestForHelper = (body: any, user = mockUser) => {
+        const request = new NextRequest('http://localhost:3000/api/payments', {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        
+        // Add user to request (simulating middleware)
+        ;(request as any).user = user
+        ;(request as any).requestId = 'test-request-123'
+        
+        return request
+      }
       
       // Create multiple requests to test uniqueness
       const ids = []
@@ -338,7 +395,7 @@ describe('/api/payments', () => {
         })
         mockPrisma.payment.update.mockResolvedValue({})
         
-        const request = createMockRequest({ amount: 500 }, mockUser)
+        const request = createMockRequestForHelper({ amount: 500 }, mockUser)
         const response = await POST(request)
         const data = await response.json()
         
