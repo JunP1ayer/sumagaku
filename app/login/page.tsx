@@ -50,6 +50,7 @@ export default function LoginPage(): JSX.Element {
   const [mounted, setMounted] = useState<boolean>(false)
   const [showGuide, setShowGuide] = useState<boolean>(false)
   const [isLoginMode, setIsLoginMode] = useState<boolean>(false)
+  const [modeSelected, setModeSelected] = useState<boolean>(false)
 
   useEffect(() => {
     setMounted(true)
@@ -79,15 +80,16 @@ export default function LoginPage(): JSX.Element {
     }
 
     if (isLoginMode) {
-      // ログインモード
-      if (!password.trim()) {
-        setError('パスワードを入力してください')
-        return
-      }
+      // ログインモード - メールアドレスのみでログイン
+      // パスワードは不要（まだ実装していないため）
     } else {
       // 新規登録モード
       if (!name.trim()) {
         setError('お名前を入力してください')
+        return
+      }
+      if (password && password.length < 6) {
+        setError('パスワードは6文字以上で設定してください')
         return
       }
     }
@@ -98,8 +100,8 @@ export default function LoginPage(): JSX.Element {
       // APIエンドポイントを切り替え
       const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register'
       const body = isLoginMode 
-        ? { email, password }
-        : { email, name: name.trim(), password: 'temp-password' }
+        ? { email, password: password || 'temp-password' } // ログイン時：メールアドレスのみで認証
+        : { email, name: name.trim(), password: password || 'temp-password' } // 新規登録時：パスワードは任意
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -196,13 +198,72 @@ export default function LoginPage(): JSX.Element {
               </Typography>
             </Box>
 
+            {/* モード選択（初期画面） */}
+            {!modeSelected && (
+              <Card sx={{ 
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                borderRadius: 3,
+                border: '1px solid rgba(15, 122, 96, 0.1)',
+                mb: 3
+              }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography variant="h6" sx={{ mb: 3, textAlign: 'center', fontWeight: 600 }}>
+                    はじめに選択してください
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                      onClick={() => {
+                        setModeSelected(true)
+                        setIsLoginMode(false)
+                      }}
+                      sx={{
+                        py: 2,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600
+                      }}
+                    >
+                      初めて利用する（新規登録）
+                    </Button>
+                    
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      fullWidth
+                      onClick={() => {
+                        setModeSelected(true)
+                        setIsLoginMode(true)
+                      }}
+                      sx={{
+                        py: 2,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        borderWidth: 2,
+                        '&:hover': {
+                          borderWidth: 2
+                        }
+                      }}
+                    >
+                      既にアカウントをお持ちの方
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
+
             {/* ログインフォーム */}
-            <Card sx={{ 
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              borderRadius: 3,
-              border: '1px solid rgba(15, 122, 96, 0.1)'
-            }}>
-              <CardContent sx={{ p: 4 }}>
+            {modeSelected && (
+              <Card sx={{ 
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                borderRadius: 3,
+                border: '1px solid rgba(15, 122, 96, 0.1)'
+              }}>
+                <CardContent sx={{ p: 4 }}>
                 {/* 名前入力（新規登録時のみ） */}
                 {!isLoginMode && (
                   <Box sx={{ mb: 3 }}>
@@ -273,39 +334,42 @@ export default function LoginPage(): JSX.Element {
                   </Typography>
                 </Box>
 
-                {/* パスワード入力（ログイン時のみ） */}
-                {isLoginMode && (
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                      パスワード
+                {/* パスワード入力（新規登録時は任意） */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    パスワード {!isLoginMode && <Typography component="span" variant="body2" color="text.secondary">（任意）</Typography>}
+                  </Typography>
+                  
+                  <TextField
+                    fullWidth
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={isLoginMode ? "※現在メールアドレスのみで認証できます" : "パスワードを設定（6文字以上）"}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockOutlined color="primary" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        '&:hover fieldset': {
+                          borderColor: 'primary.main',
+                        },
+                      }
+                    }}
+                    disabled={loading || isLoginMode} // ログイン時は無効化
+                  />
+                  {isLoginMode && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      ※ パスワード認証は現在準備中です。メールアドレスのみでログインできます。
                     </Typography>
-                    
-                    <TextField
-                      fullWidth
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="パスワードを入力"
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <LockOutlined color="primary" />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
-                          '&:hover fieldset': {
-                            borderColor: 'primary.main',
-                          },
-                        }
-                      }}
-                      disabled={loading}
-                    />
-                  </Box>
-                )}
+                  )}
+                </Box>
 
                 {error && (
                   <Alert severity="error" sx={{ mb: 3, whiteSpace: 'pre-line' }}>
@@ -340,35 +404,26 @@ export default function LoginPage(): JSX.Element {
                   {loading ? '認証中...' : (isLoginMode ? 'ログイン' : '新規登録')}
                 </Button>
 
-                <Divider sx={{ my: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    または
-                  </Typography>
-                </Divider>
+                <Divider sx={{ my: 3 }} />
 
                 <Button
-                  variant="outlined"
+                  variant="text"
                   fullWidth
                   onClick={() => {
-                    setIsLoginMode(!isLoginMode)
+                    setModeSelected(false)
                     setError('')
                     setPassword('')
                   }}
-                  disabled={loading}
+                  startIcon={<ArrowBackOutlined />}
                   sx={{
-                    py: 1.5,
-                    mb: 2,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderWidth: 2,
+                    mb: 1,
+                    color: 'text.secondary',
                     '&:hover': {
-                      borderWidth: 2,
-                      backgroundColor: 'rgba(15, 122, 96, 0.05)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
                     }
                   }}
                 >
-                  {isLoginMode ? '新規登録はこちら' : '既にアカウントをお持ちの方'}
+                  選択画面に戻る
                 </Button>
 
                 <Button
@@ -392,6 +447,7 @@ export default function LoginPage(): JSX.Element {
                 </Typography>
               </CardContent>
             </Card>
+            )}
           </Box>
         </Fade>
 
