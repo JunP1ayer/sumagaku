@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-
+import { useState, useEffect } from 'react'
 import { 
   Container, 
   Box, 
@@ -36,7 +35,6 @@ import {
   CheckCircleOutlined,
   PhoneAndroidOutlined
 } from '@mui/icons-material'
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useAppStore from '@/lib/store'
 import type { User } from '@/types'

@@ -61,12 +61,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Error handling
-try {
-  (prisma as any).$on('error', (e: any) => {
-    console.error('Prisma Error:', e)
-  })
-} catch (error) {
-  // Ignore if event monitoring not supported
+if (process.env.NODE_ENV === 'development') {
+  try {
+    (prisma as any).$on('error', (e: any) => {
+      console.error('Prisma Error:', e)
+    })
+  } catch (error) {
+    // Ignore if event monitoring not supported
+  }
 }
 
 // Graceful shutdown
