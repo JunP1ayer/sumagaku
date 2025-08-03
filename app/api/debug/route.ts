@@ -13,11 +13,17 @@ export async function GET(request: NextRequest) {
     let dbError = null
     
     try {
-      await prisma.$queryRaw`SELECT 1`
+      // より詳細なエラー情報を取得
+      const result = await prisma.$queryRaw`SELECT 1 as test`
       dbStatus = 'Connected'
-    } catch (error) {
+    } catch (error: any) {
       dbStatus = 'Failed'
-      dbError = error instanceof Error ? error.message : 'Unknown error'
+      dbError = {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: error?.code,
+        meta: error?.meta,
+        clientVersion: error?.clientVersion
+      }
     }
     
     return successResponse({
