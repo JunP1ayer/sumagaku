@@ -158,17 +158,19 @@ export default function LoginPage(): JSX.Element {
     <Box sx={{ 
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #F8F9FA 0%, #E8F5E8 100%)',
+      display: 'flex',
+      alignItems: 'center',
       py: { xs: 2, sm: 4 }
     }}>
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" sx={{ width: '100%' }}>
         <Fade in={mounted} timeout={800}>
           <Box>
             {/* ヘッダー */}
-            <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
+            <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 }, position: 'relative' }}>
               <Button
                 onClick={() => router.push('/')}
                 sx={{ 
-                  position: 'absolute', 
+                  position: 'fixed', 
                   top: { xs: 16, sm: 32 }, 
                   left: { xs: 16, sm: 32 },
                   color: 'text.secondary',
@@ -176,7 +178,8 @@ export default function LoginPage(): JSX.Element {
                   width: { xs: 48, sm: 40 },
                   height: { xs: 48, sm: 40 },
                   borderRadius: '50%',
-                  p: 0
+                  p: 0,
+                  zIndex: 10
                 }}
               >
                 <ArrowBackOutlined />
